@@ -1,23 +1,47 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { NavLink } from 'react-router-dom';
 
 const Header: React.FC = () => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen);
+  };
+
   return (
     <header className="header bg-blue-800 text-white p-4">
-      <nav className="header__nav container mx-auto flex justify-between">
-        <h1 className="header__logo text-xl">Virtual Business Cards</h1>
-        <ul className="header__menu flex gap-4">
+      <nav className="header__nav container mx-auto flex justify-between items-center">
+        <h1 className="header__logo text-xl font-bold">Virtual Business Cards</h1>
+        <button
+          className="sm:hidden text-2xl focus:outline-none hover:text-gray-300 transition-colors"
+          onClick={toggleMenu}
+        >
+          ☰
+        </button>
+        <ul
+          className={`header__menu flex flex-col sm:flex-row gap-4 ${
+            isMenuOpen ? 'flex' : 'hidden'
+          } sm:flex absolute sm:static top-16 left-0 right-0 bg-blue-800 sm:bg-transparent p-4 sm:p-0`}
+        >
           <li className="flex justify-center items-center">
-            <NavLink to="/" className="header__link">Home</NavLink>
+            <NavLink to="/" className="header__link" onClick={() => setIsMenuOpen(false)}>
+              Home
+            </NavLink>
           </li>
           <li className="flex justify-center items-center">
-            <NavLink to="/create" className="header__link">Create</NavLink>
+            <NavLink to="/create" className="header__link" onClick={() => setIsMenuOpen(false)}>
+              Create
+            </NavLink>
           </li>
           <li className="flex justify-center items-center">
-            <NavLink to="/templates" className="header__link">Templates</NavLink>
+            <NavLink to="/templates" className="header__link" onClick={() => setIsMenuOpen(false)}>
+              Templates
+            </NavLink>
           </li>
           <li className="flex justify-center items-center">
-            <NavLink to="/profile" className="header__link">Profile</NavLink>
+            <NavLink to="/profile" className="header__link" onClick={() => setIsMenuOpen(false)}>
+              Profile
+            </NavLink>
           </li>
         </ul>
       </nav>
