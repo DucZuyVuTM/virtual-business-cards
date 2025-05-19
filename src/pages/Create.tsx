@@ -41,6 +41,7 @@ const Create: React.FC = () => {
   const group3Ref = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768); // Khởi tạo isMobile ngay lập tức
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(null); // State cho hình ảnh nền
 
   // Tính toán vị trí động và kích thước màn hình
   useEffect(() => {
@@ -131,9 +132,20 @@ const Create: React.FC = () => {
     alert('Card data saved! Check console for details.');
   };
 
-  const handleReset = () => {
-    setCardData(defaultData);
-    // Gọi lại logic useEffect để cập nhật vị trí động sau khi reset
+  const handleResetInfo = () => {
+    setCardData((prev) => ({
+      ...prev,
+      name: defaultData.name,
+      title: defaultData.title,
+      organization: defaultData.organization,
+      location: defaultData.location,
+      phone: defaultData.phone,
+      email: defaultData.email,
+      website: defaultData.website,
+    }));
+  };
+
+  const handleResetPosition = () => {
     if (cardRef.current) {
       const rect = cardRef.current.getBoundingClientRect();
       const symmetryAxisX = rect.width * 3 / 4;
@@ -146,22 +158,22 @@ const Create: React.FC = () => {
       const group1Width = group1Ref.current?.getBoundingClientRect().width || 0;
       const group2Width = group2Ref.current?.getBoundingClientRect().width || 0;
       const group3Width = group3Ref.current?.getBoundingClientRect().width || 0;
-      const logoWidth = logoRef.current?.getBoundingClientRect().width || 100;
+      const logoWidth = logoRef.current?.getBoundingClientRect().width || 0;
 
       const group1X = symmetryAxisX - group1Width / 2;
       const group2X = symmetryAxisX - group2Width / 2;
       const group3X = symmetryAxisX - group3Width / 2;
       const adjustedLogoX = logoX - logoWidth / 2;
 
-      setCardData({
-        ...defaultData,
+      setCardData((prev) => ({
+        ...prev,
         positions: {
           group1: { x: group1X, y: rect.height / 4 - group1Height / 2 - spacing },
           group2: { x: group2X, y: rect.height / 2 - group2Height / 2 },
           group3: { x: group3X, y: (rect.height * 3) / 4 - group3Height / 2 + spacing },
           logo: { x: adjustedLogoX, y: logoY },
         },
-      });
+      }));
     }
   };
 
@@ -169,6 +181,19 @@ const Create: React.FC = () => {
     const file = e.target.files?.[0];
     if (file) {
       console.log('Logo uploaded:', file.name);
+    }
+  };
+
+  const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (event.target?.result) {
+          setBackgroundImage(event.target.result as string);
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -209,7 +234,7 @@ const Create: React.FC = () => {
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         style={{
-          background: 'linear-gradient(to bottom, #1e3c72, #2a5298)',
+          background: backgroundImage ? `url(${backgroundImage}) no-repeat center/cover` : 'linear-gradient(to bottom, #1e3c72, #2a5298)',
           aspectRatio: '7 / 4',
           maxWidth: '100%',
           maxHeight: 'calc(100vh - 200px)',
@@ -219,13 +244,15 @@ const Create: React.FC = () => {
           position: 'relative',
         }}
       >
-        <div
-          className="absolute inset-0"
-          style={{
-            backgroundImage: "url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'10\' cy=\'20\' r=\'1\' fill=\'white\'/%3E%3Ccircle cx=\'30\' cy=\'50\' r=\'1\' fill=\'white\'/%3E%3Ccircle cx=\'70\' cy=\'80\' r=\'1\' fill=\'white\'/%3E%3C/svg\')",
-            opacity: 0.2,
-          }}
-        />
+        {!backgroundImage && (
+          <div
+            className="absolute inset-0"
+            style={{
+              backgroundImage: "url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 100 100\'%3E%3Ccircle cx=\'10\' cy=\'20\' r=\'1\' fill=\'white\'/%3E%3Ccircle cx=\'30\' cy=\'50\' r=\'1\' fill=\'white\'/%3E%3Ccircle cx=\'70\' cy=\'80\' r=\'1\' fill=\'white\'/%3E%3C/svg\')",
+              opacity: 0.2,
+            }}
+          />
+        )}
         <div className="flex w-full h-full p-4">
           <div className="w-2/3 text-white p-4">
             {/* Group 1: name và title */}
@@ -364,19 +391,38 @@ const Create: React.FC = () => {
           </div>
         </div>
       </div>
-      <div className="flex justify-center gap-4 mt-4">
-        <button
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-          onClick={handleSave}
-        >
-          Save
-        </button>
-        <button
-          className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition"
-          onClick={handleReset}
-        >
-          Reset
-        </button>
+      <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} justify-center gap-4 mt-4`}>
+        <div className={`flex gap-4 ${isMobile ? 'm-auto' : ''}`}>
+          <label className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition cursor-pointer">
+            <input
+              type="file"
+              className="hidden"
+              accept="image/*"
+              onChange={handleBackgroundUpload}
+            />
+            Upload background
+          </label>
+          <button
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+            onClick={handleSave}
+          >
+            Save
+          </button>
+        </div>
+        <div className={`flex gap-4 ${isMobile ? 'm-auto' : ''}`}>
+          <button
+            className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition"
+            onClick={handleResetInfo}
+          >
+            Reset Info
+          </button>
+          <button
+            className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition"
+            onClick={handleResetPosition}
+          >
+            Reset position
+          </button>
+        </div>
       </div>
     </main>
   );
