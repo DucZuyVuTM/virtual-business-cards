@@ -21,7 +21,7 @@ const Header: React.FC = () => {
         <ul
           className={`header__menu flex flex-col sm:flex-row gap-4 ${
             isMenuOpen ? 'flex' : 'hidden'
-          } sm:flex absolute sm:static top-16 left-0 right-0 bg-blue-800 sm:bg-transparent p-4 sm:p-0`}
+          } sm:flex absolute sm:static top-16 left-0 right-0 bg-blue-800 sm:bg-transparent p-4 sm:p-0 z-[100]`}
         >
           <li className="flex justify-center items-center">
             <NavLink to="/" className="header__link" onClick={() => setIsMenuOpen(false)}>
