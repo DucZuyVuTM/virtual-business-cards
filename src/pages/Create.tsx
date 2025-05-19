@@ -48,6 +48,7 @@ const Create: React.FC = () => {
         const rect = cardRef.current.getBoundingClientRect();
         const rightEdge = rect.width - 200; // Đặt văn bản cách rìa phải 200px
         const logoY = (rect.height - 100) / 2; // Canh giữa logo (giả định logo cao 100px)
+        const spacing = isMobile ? 20 : 0; // Khoảng cách 20px giữa các nhóm trên mobile
 
         // Lấy chiều cao của từng nhóm
         const group1Height = group1Ref.current?.getBoundingClientRect().height || 0;
@@ -57,9 +58,9 @@ const Create: React.FC = () => {
         setCardData((prev) => ({
           ...prev,
           positions: {
-            group1: { x: rightEdge, y: rect.height / 4 - group1Height / 2 }, // 1/4 chiều cao, căn giữa nhóm
-            group2: { x: rightEdge, y: rect.height / 2 - group2Height / 2 }, // 1/2 chiều cao, căn giữa nhóm
-            group3: { x: rightEdge, y: (rect.height * 3) / 4 - group3Height / 2 }, // 3/4 chiều cao, căn giữa nhóm
+            group1: { x: rightEdge, y: rect.height / 4 - group1Height / 2 - spacing}, // 1/4 chiều cao, căn giữa nhóm
+            group2: { x: rightEdge, y: rect.height / 2 - group2Height / 2 }, // 1/2 chiều cao, thêm khoảng cách
+            group3: { x: rightEdge, y: (rect.height * 3) / 4 - group3Height / 2 + spacing }, // 3/4 chiều cao, thêm khoảng cách
             logo: { x: 0, y: logoY },
           },
         }));
@@ -123,6 +124,7 @@ const Create: React.FC = () => {
       const rect = cardRef.current.getBoundingClientRect();
       const rightEdge = rect.width - 200;
       const logoY = (rect.height - 100) / 2;
+      const spacing = isMobile ? 20 : 0;
       const group1Height = group1Ref.current?.getBoundingClientRect().height || 0;
       const group2Height = group2Ref.current?.getBoundingClientRect().height || 0;
       const group3Height = group3Ref.current?.getBoundingClientRect().height || 0;
@@ -130,9 +132,9 @@ const Create: React.FC = () => {
       setCardData({
         ...defaultData,
         positions: {
-          group1: { x: rightEdge, y: rect.height / 4 - group1Height / 2 },
+          group1: { x: rightEdge, y: rect.height / 4 - group1Height / 2 - spacing},
           group2: { x: rightEdge, y: rect.height / 2 - group2Height / 2 },
-          group3: { x: rightEdge, y: (rect.height * 3) / 4 - group3Height / 2 },
+          group3: { x: rightEdge, y: (rect.height * 3) / 4 - group3Height / 2 + spacing },
           logo: { x: 0, y: logoY },
         },
       });
