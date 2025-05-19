@@ -39,15 +39,17 @@ const Create: React.FC = () => {
   const group1Ref = useRef<HTMLDivElement>(null);
   const group2Ref = useRef<HTMLDivElement>(null);
   const group3Ref = useRef<HTMLDivElement>(null);
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  const logoRef = useRef<HTMLDivElement>(null);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768); // Khởi tạo isMobile ngay lập tức
 
   // Tính toán vị trí động và kích thước màn hình
   useEffect(() => {
     const handleResize = () => {
       if (cardRef.current) {
         const rect = cardRef.current.getBoundingClientRect();
-        const rightEdge = rect.width - 200; // Đặt văn bản cách rìa phải 200px
-        const logoY = (rect.height - 100) / 2; // Canh giữa logo (giả định logo cao 100px)
+        const symmetryAxisX = rect.width * 3 / 4; // Trục đối xứng tại 3/4 chiều dài card
+        const logoX = rect.width / 4; // Vị trí x của logo tại 1/4 chiều dài card
+        const logoY = (rect.height - 100) / 2; // Canh giữa logo theo trục y (giả định logo cao 100px)
         const spacing = isMobile ? 20 : 0; // Khoảng cách 20px giữa các nhóm trên mobile
 
         // Lấy chiều cao của từng nhóm
@@ -55,17 +57,29 @@ const Create: React.FC = () => {
         const group2Height = group2Ref.current?.getBoundingClientRect().height || 0;
         const group3Height = group3Ref.current?.getBoundingClientRect().height || 0;
 
+        // Lấy chiều rộng của nhóm và logo
+        const group1Width = group1Ref.current?.getBoundingClientRect().width || 0;
+        const group2Width = group2Ref.current?.getBoundingClientRect().width || 0;
+        const group3Width = group3Ref.current?.getBoundingClientRect().width || 0;
+        const logoWidth = logoRef.current?.getBoundingClientRect().width || 0;
+
+        // Tính toán vị trí x: Đặt tâm của nhóm tại symmetryAxisX, tâm của logo tại logoX
+        const group1X = symmetryAxisX - group1Width / 2;
+        const group2X = symmetryAxisX - group2Width / 2;
+        const group3X = symmetryAxisX - group3Width / 2;
+        const adjustedLogoX = logoX - logoWidth / 2; // Căn giữa logo tại 1/4 chiều dài
+
         setCardData((prev) => ({
           ...prev,
           positions: {
-            group1: { x: rightEdge, y: rect.height / 4 - group1Height / 2 - spacing}, // 1/4 chiều cao, căn giữa nhóm
-            group2: { x: rightEdge, y: rect.height / 2 - group2Height / 2 }, // 1/2 chiều cao, thêm khoảng cách
-            group3: { x: rightEdge, y: (rect.height * 3) / 4 - group3Height / 2 + spacing }, // 3/4 chiều cao, thêm khoảng cách
-            logo: { x: 0, y: logoY },
+            group1: { x: group1X, y: rect.height / 4 - group1Height / 2 - spacing }, // 1/4 chiều cao, căn giữa nhóm
+            group2: { x: group2X, y: rect.height / 2 - group2Height / 2 }, // 1/2 chiều cao, thêm khoảng cách
+            group3: { x: group3X, y: (rect.height * 3) / 4 - group3Height / 2 + spacing }, // 3/4 chiều cao, thêm khoảng cách
+            logo: { x: adjustedLogoX, y: logoY },
           },
         }));
       }
-      setIsMobile(window.innerWidth < 768); // Thu nhỏ văn bản nếu < 768px
+      setIsMobile(window.innerWidth < 768); // Cập nhật isMobile khi resize
     };
 
     handleResize();
@@ -122,20 +136,30 @@ const Create: React.FC = () => {
     // Gọi lại logic useEffect để cập nhật vị trí động sau khi reset
     if (cardRef.current) {
       const rect = cardRef.current.getBoundingClientRect();
-      const rightEdge = rect.width - 200;
+      const symmetryAxisX = rect.width * 3 / 4;
+      const logoX = rect.width / 4;
       const logoY = (rect.height - 100) / 2;
       const spacing = isMobile ? 20 : 0;
       const group1Height = group1Ref.current?.getBoundingClientRect().height || 0;
       const group2Height = group2Ref.current?.getBoundingClientRect().height || 0;
       const group3Height = group3Ref.current?.getBoundingClientRect().height || 0;
+      const group1Width = group1Ref.current?.getBoundingClientRect().width || 0;
+      const group2Width = group2Ref.current?.getBoundingClientRect().width || 0;
+      const group3Width = group3Ref.current?.getBoundingClientRect().width || 0;
+      const logoWidth = logoRef.current?.getBoundingClientRect().width || 100;
+
+      const group1X = symmetryAxisX - group1Width / 2;
+      const group2X = symmetryAxisX - group2Width / 2;
+      const group3X = symmetryAxisX - group3Width / 2;
+      const adjustedLogoX = logoX - logoWidth / 2;
 
       setCardData({
         ...defaultData,
         positions: {
-          group1: { x: rightEdge, y: rect.height / 4 - group1Height / 2 - spacing},
-          group2: { x: rightEdge, y: rect.height / 2 - group2Height / 2 },
-          group3: { x: rightEdge, y: (rect.height * 3) / 4 - group3Height / 2 + spacing },
-          logo: { x: 0, y: logoY },
+          group1: { x: group1X, y: rect.height / 4 - group1Height / 2 - spacing },
+          group2: { x: group2X, y: rect.height / 2 - group2Height / 2 },
+          group3: { x: group3X, y: (rect.height * 3) / 4 - group3Height / 2 + spacing },
+          logo: { x: adjustedLogoX, y: logoY },
         },
       });
     }
@@ -317,6 +341,7 @@ const Create: React.FC = () => {
 
             {/* Logo */}
             <div
+              ref={logoRef}
               key="logo"
               draggable
               onDragStart={(e) => handleDragStart(e, 'logo')}
