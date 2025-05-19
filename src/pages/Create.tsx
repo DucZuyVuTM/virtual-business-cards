@@ -39,7 +39,7 @@ const Create: React.FC = () => {
   const group1Ref = useRef<HTMLDivElement>(null);
   const group2Ref = useRef<HTMLDivElement>(null);
   const group3Ref = useRef<HTMLDivElement>(null);
-  const [isMobile, setIsMobile] = useState(false);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
 
   // Tính toán vị trí động và kích thước màn hình
   useEffect(() => {
