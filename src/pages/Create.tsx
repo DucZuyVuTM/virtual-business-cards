@@ -189,8 +189,8 @@ const Create = () => {
       const range = selection.getRangeAt(0);
       const commonAncestor = range.commonAncestorContainer;
       const isWithinCard = cardRef.current.contains(commonAncestor as Node);
-      
-      if (isWithinCard) {
+
+      if (isWithinCard && selection.toString().trim().length > 0) { // Chỉ hiển thị khi có văn bản được chọn
         const rect = range.getBoundingClientRect();
         setPopupPosition({ 
           x: rect.left + window.scrollX, 
@@ -201,11 +201,12 @@ const Create = () => {
       } else {
         setShowPopup(false);
         setSelectedText(null);
-        selection.removeAllRanges();
+        selection?.removeAllRanges();
       }
     } else {
       setShowPopup(false);
       setSelectedText(null);
+      selection?.removeAllRanges();
     }
   };
 
