@@ -410,14 +410,14 @@ const Create = () => {
   const dragHandleStyle: React.CSSProperties = {
     position: 'absolute',
     padding: '4px',
-    border: '4px dashed rgba(255, 255, 255, 0.3)',
+    border: `4px dashed ${textColor === 'white' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'}`,
     cursor: 'move',
     borderRadius: '4px',
     maxWidth: '200px',
   };
 
   const dragHandleHoverStyle: React.CSSProperties = {
-    border: '4px dashed rgba(255, 255, 255, 0.7)',
+    border: `4px dashed ${textColor === 'white' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'}`,
   };
 
   const textElementStyle: React.CSSProperties = {
@@ -479,7 +479,7 @@ const Create = () => {
                 top: `${cardData.positions.group1.y}px`,
               }}
               onMouseEnter={(e) => Object.assign(e.currentTarget.style, dragHandleHoverStyle)}
-              onMouseLeave={(e) => Object.assign(e.currentTarget.style, { border: '4px dashed rgba(255, 255, 255, 0.3)' })}
+              onMouseLeave={(e) => Object.assign(e.currentTarget.style, dragHandleStyle)}
             >
               <EditableField
                 field="name"
@@ -509,7 +509,7 @@ const Create = () => {
                 top: `${cardData.positions.group2.y}px`,
               }}
               onMouseEnter={(e) => Object.assign(e.currentTarget.style, dragHandleHoverStyle)}
-              onMouseLeave={(e) => Object.assign(e.currentTarget.style, { border: '4px dashed rgba(255, 255, 255, 0.3)' })}
+              onMouseLeave={(e) => Object.assign(e.currentTarget.style, dragHandleStyle)}
             >
               <EditableField
                 field="organization"
@@ -546,7 +546,7 @@ const Create = () => {
                 top: `${cardData.positions.group3.y}px`,
               }}
               onMouseEnter={(e) => Object.assign(e.currentTarget.style, dragHandleHoverStyle)}
-              onMouseLeave={(e) => Object.assign(e.currentTarget.style, { border: '4px dashed rgba(255, 255, 255, 0.3)' })}
+              onMouseLeave={(e) => Object.assign(e.currentTarget.style, dragHandleStyle)}
             >
               <EditableField
                 field="email"
