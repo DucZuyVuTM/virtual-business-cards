@@ -261,30 +261,70 @@ const Create = () => {
   };
 
   const removeFormatting = () => {
-    if (selectedText) {
-      const selection = window.getSelection();
-      selection?.removeAllRanges();
-      selection?.addRange(selectedText);
+    if (!selectedText) return;
 
-      const range = selectedText;
-      const fragment = range.extractContents();
-      const textContent = fragment.textContent || '';
-      const textNode = document.createTextNode(textContent);
-      range.insertNode(textNode);
+    const selection = window.getSelection();
+    if (!selection) return;
 
-      // Cập nhật nội dung sau khi xóa định dạng
-      const parentP = range.commonAncestorContainer.parentElement?.closest('p');
-      if (parentP) {
-        const field = parentP.getAttribute('data-field') as keyof CardData;
-        if (field) {
-          handleInput(field, parentP.innerHTML);
+    selection.removeAllRanges();
+    selection.addRange(selectedText);
+
+    const range = selectedText;
+    const commonAncestor = range.commonAncestorContainer;
+
+    // Tìm thẻ <p> cha gần nhất
+    const parentP = range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
+      ? (range.commonAncestorContainer as HTMLElement).closest('p')
+      : range.commonAncestorContainer.parentElement?.closest('p');
+    if (!parentP) return;
+
+    // Duyệt từ node chứa vùng chọn lên để tìm <span> trực tiếp
+    let currentNode: Node | null = range.startContainer;
+    let targetSpan: HTMLElement | null = null;
+
+    while (currentNode && currentNode !== parentP) {
+      if (currentNode.nodeType === Node.ELEMENT_NODE && (currentNode as HTMLElement).tagName.toLowerCase() === 'span') {
+        targetSpan = currentNode as HTMLElement;
+        break;
+      }
+      currentNode = currentNode.parentNode;
+    }
+
+    if (targetSpan && range.intersectsNode(targetSpan)) {
+      const rangeInSpan = document.createRange();
+      rangeInSpan.selectNodeContents(targetSpan);
+      const intersection = document.createRange();
+      intersection.setStart(range.startContainer, range.startOffset);
+      intersection.setEnd(range.endContainer, range.endOffset);
+
+      // Tính toán giao nhau dựa trên ranh giới
+      if (rangeInSpan.compareBoundaryPoints(Range.START_TO_START, intersection) <= 0 &&
+          rangeInSpan.compareBoundaryPoints(Range.END_TO_END, intersection) >= 0) {
+        const fragment = intersection.extractContents();
+        const textContent = fragment.textContent || '';
+        const textNode = document.createTextNode(textContent);
+
+        intersection.insertNode(textNode);
+        if (targetSpan.childNodes.length === 0) {
+          targetSpan.parentNode?.removeChild(targetSpan);
+        } else {
+          const remainingContent = rangeInSpan.cloneContents();
+          if (remainingContent.textContent && remainingContent.textContent.trim().length > 0) {
+            targetSpan.parentNode?.replaceChild(remainingContent, targetSpan);
+          }
         }
       }
-
-      setShowPopup(false);
-      setSelectedText(null);
-      selection?.removeAllRanges();
     }
+
+    // Cập nhật nội dung sau khi xóa định dạng
+    const field = parentP.getAttribute('data-field') as keyof CardData;
+    if (field) {
+      handleInput(field, parentP.innerHTML);
+    }
+
+    setShowPopup(false);
+    setSelectedText(null);
+    selection.removeAllRanges();
   };
 
   const applyBold = () => {
