@@ -1,22 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
+import FormattingPopup from '../components/FormattingPopup';
+import { CardData } from '../types/cardTypes';
 
-interface CardData {
-  name: string;
-  title: string;
-  organization: string;
-  location: string;
-  phone: string;
-  email: string;
-  website: string;
-  positions: {
-    group1: { x: number; y: number };
-    group2: { x: number; y: number };
-    group3: { x: number; y: number };
-    logo: { x: number; y: number };
-  };
-}
-
-const Create: React.FC = () => {
+const Create = () => {
   const defaultData: CardData = {
     name: 'John Doe',
     title: 'Position',
@@ -35,57 +21,50 @@ const Create: React.FC = () => {
 
   const [cardData, setCardData] = useState<CardData>(defaultData);
   const [isDragging, setIsDragging] = useState<string | null>(null);
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
+  const [showPopup, setShowPopup] = useState(false);
+  const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
+  const [selectedText, setSelectedText] = useState<Range | null>(null);
+
   const cardRef = useRef<HTMLDivElement>(null);
   const group1Ref = useRef<HTMLDivElement>(null);
   const group2Ref = useRef<HTMLDivElement>(null);
   const group3Ref = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
-  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768); // Khởi tạo isMobile ngay lập tức
-  const [backgroundImage, setBackgroundImage] = useState<string | null>(null); // State cho hình ảnh nền
 
-  // Tính toán vị trí động và kích thước màn hình
+  // Load Open Sans font
   useEffect(() => {
+    const link = document.createElement('link');
+    link.href = 'https://fonts.googleapis.com/css2?family=Open+Sans&display=swap';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+
     const handleResize = () => {
       if (cardRef.current) {
-        const rect = cardRef.current.getBoundingClientRect();
-        const symmetryAxisX = rect.width * 3 / 4; // Trục đối xứng tại 3/4 chiều dài card
-        const logoX = rect.width / 4; // Vị trí x của logo tại 1/4 chiều dài card
-        const logoY = (rect.height - 100) / 2; // Canh giữa logo theo trục y (giả định logo cao 100px)
-        const spacing = isMobile ? 20 : 0; // Khoảng cách 20px giữa các nhóm trên mobile
-
-        // Lấy chiều cao của từng nhóm
-        const group1Height = group1Ref.current?.getBoundingClientRect().height || 0;
-        const group2Height = group2Ref.current?.getBoundingClientRect().height || 0;
-        const group3Height = group3Ref.current?.getBoundingClientRect().height || 0;
-
-        // Lấy chiều rộng của nhóm và logo
-        const group1Width = group1Ref.current?.getBoundingClientRect().width || 0;
-        const group2Width = group2Ref.current?.getBoundingClientRect().width || 0;
-        const group3Width = group3Ref.current?.getBoundingClientRect().width || 0;
-        const logoWidth = logoRef.current?.getBoundingClientRect().width || 0;
-
-        // Tính toán vị trí x: Đặt tâm của nhóm tại symmetryAxisX, tâm của logo tại logoX
-        const group1X = symmetryAxisX - group1Width / 2;
-        const group2X = symmetryAxisX - group2Width / 2;
-        const group3X = symmetryAxisX - group3Width / 2;
-        const adjustedLogoX = logoX - logoWidth / 2; // Căn giữa logo tại 1/4 chiều dài
-
-        setCardData((prev) => ({
-          ...prev,
-          positions: {
-            group1: { x: group1X, y: rect.height / 4 - group1Height / 2 - spacing }, // 1/4 chiều cao, căn giữa nhóm
-            group2: { x: group2X, y: rect.height / 2 - group2Height / 2 }, // 1/2 chiều cao, thêm khoảng cách
-            group3: { x: group3X, y: (rect.height * 3) / 4 - group3Height / 2 + spacing }, // 3/4 chiều cao, thêm khoảng cách
-            logo: { x: adjustedLogoX, y: logoY },
-          },
-        }));
+        resetPositions();
       }
-      setIsMobile(window.innerWidth < 768); // Cập nhật isMobile khi resize
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    const handleClickOutside = (e: MouseEvent) => {
+      if (cardRef.current && !cardRef.current.contains(e.target as Node) && 
+          !(e.target as HTMLElement).closest('.formatting-popup')) {
+        setShowPopup(false);
+        setSelectedText(null);
+        window.getSelection()?.removeAllRanges();
+      }
     };
 
     handleResize();
     window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    document.addEventListener('mousedown', handleClickOutside);
+    
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.head.removeChild(link);
+    };
   }, []);
 
   const handleInput = (field: keyof CardData, value: string) => {
@@ -112,10 +91,12 @@ const Create: React.FC = () => {
     const field = e.dataTransfer.getData('text/plain');
     const offsetX = parseFloat(e.dataTransfer.getData('offsetX'));
     const offsetY = parseFloat(e.dataTransfer.getData('offsetY'));
+    
     if (cardRef.current && isDragging) {
       const rect = cardRef.current.getBoundingClientRect();
       const x = Math.max(0, Math.min(e.clientX - rect.left - offsetX, rect.width - 100));
       const y = Math.max(0, Math.min(e.clientY - rect.top - offsetY, rect.height - 20));
+      
       setCardData((prev) => ({
         ...prev,
         positions: {
@@ -145,13 +126,14 @@ const Create: React.FC = () => {
     }));
   };
 
-  const handleResetPosition = () => {
+  const resetPositions = () => {
     if (cardRef.current) {
       const rect = cardRef.current.getBoundingClientRect();
       const symmetryAxisX = rect.width * 3 / 4;
       const logoX = rect.width / 4;
       const logoY = (rect.height - 100) / 2;
       const spacing = isMobile ? 20 : 0;
+      
       const group1Height = group1Ref.current?.getBoundingClientRect().height || 0;
       const group2Height = group2Ref.current?.getBoundingClientRect().height || 0;
       const group3Height = group3Ref.current?.getBoundingClientRect().height || 0;
@@ -197,7 +179,172 @@ const Create: React.FC = () => {
     }
   };
 
-  // Style cho drag handle
+  const handleTextSelect = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('.formatting-popup')) {
+      return;
+    }
+
+    const selection = window.getSelection();
+    if (selection && selection.toString().length > 0 && cardRef.current) {
+      const range = selection.getRangeAt(0);
+      const commonAncestor = range.commonAncestorContainer;
+      const isWithinCard = cardRef.current.contains(commonAncestor as Node);
+      
+      if (isWithinCard) {
+        const rect = range.getBoundingClientRect();
+        setPopupPosition({ 
+          x: rect.left + window.scrollX, 
+          y: rect.top + window.scrollY + rect.height 
+        });
+        setSelectedText(range);
+        setShowPopup(true);
+      } else {
+        setShowPopup(false);
+        setSelectedText(null);
+        selection.removeAllRanges();
+      }
+    } else {
+      setShowPopup(false);
+      setSelectedText(null);
+    }
+  };
+
+  const applyFormatting = (style: Partial<CSSStyleDeclaration>) => {
+    if (selectedText) {
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(selectedText);
+
+      const range = selectedText;
+      const span = document.createElement('span');
+      
+      // Clone the contents of the range into the span
+      range.surroundContents(span);
+
+      // Apply style to the span
+      Object.assign(span.style, style);
+
+      setShowPopup(false);
+      setSelectedText(null);
+      selection?.removeAllRanges();
+    }
+  };
+
+  const removeFormatting = () => {
+    if (selectedText) {
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(selectedText);
+
+      // Get the parent element
+      const range = selectedText;
+      const fragment = range.extractContents();
+      
+      // Remove all formatting by getting just the text
+      const textContent = fragment.textContent;
+      
+      // Insert the plain text back
+      const textNode = document.createTextNode(textContent || '');
+      range.insertNode(textNode);
+
+      setShowPopup(false);
+      setSelectedText(null);
+      selection?.removeAllRanges();
+    }
+  };
+
+  const applyBold = () => {
+    if (selectedText) {
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(selectedText);
+
+      const range = selectedText;
+      const startContainer = range.startContainer;
+      let parentElement: HTMLElement | null = null;
+
+      // Tìm phần tử cha gần nhất chứa đoạn text
+      if (startContainer.nodeType === Node.TEXT_NODE) {
+        parentElement = startContainer.parentElement;
+      } else if (startContainer.nodeType === Node.ELEMENT_NODE) {
+        parentElement = startContainer as HTMLElement;
+      }
+
+      // Kiểm tra fontWeight hiện tại
+      const computedStyle = parentElement ? window.getComputedStyle(parentElement) : null;
+      const currentFontWeight = computedStyle?.fontWeight;
+
+      // Toggle fontWeight: nếu đã là bold (700 hoặc 'bold') thì chuyển về normal, ngược lại thì bold
+      const newFontWeight = currentFontWeight === '700' || currentFontWeight === 'bold' ? 'normal' : 'bold';
+
+      applyFormatting({ fontWeight: newFontWeight });
+    }
+  };
+
+  const applyItalic = () => {
+    if (selectedText) {
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(selectedText);
+
+      const range = selectedText;
+      const startContainer = range.startContainer;
+      let parentElement: HTMLElement | null = null;
+
+      // Tìm phần tử cha gần nhất chứa đoạn text
+      if (startContainer.nodeType === Node.TEXT_NODE) {
+        parentElement = startContainer.parentElement;
+      } else if (startContainer.nodeType === Node.ELEMENT_NODE) {
+        parentElement = startContainer as HTMLElement;
+      }
+
+      // Kiểm tra fontStyle hiện tại
+      const computedStyle = parentElement ? window.getComputedStyle(parentElement) : null;
+      const currentFontStyle = computedStyle?.fontStyle;
+
+      // Toggle fontStyle: nếu đã là italic thì chuyển về normal, ngược lại thì italic
+      const newFontStyle = currentFontStyle === 'italic' ? 'normal' : 'italic';
+
+      applyFormatting({ fontStyle: newFontStyle });
+    }
+  };
+
+  const applyUnderline = () => {
+    if (selectedText) {
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(selectedText);
+
+      const range = selectedText;
+      const startContainer = range.startContainer;
+      let parentElement: HTMLElement | null = null;
+
+      // Tìm phần tử cha gần nhất chứa đoạn text
+      if (startContainer.nodeType === Node.TEXT_NODE) {
+        parentElement = startContainer.parentElement;
+      } else if (startContainer.nodeType === Node.ELEMENT_NODE) {
+        parentElement = startContainer as HTMLElement;
+      }
+
+      // Kiểm tra textDecoration hiện tại
+      const computedStyle = parentElement ? window.getComputedStyle(parentElement) : null;
+      const currentTextDecoration = computedStyle?.textDecorationLine || computedStyle?.textDecoration;
+
+      // Toggle textDecoration: nếu đã có underline thì chuyển về none, ngược lại thì underline
+      const newTextDecoration = currentTextDecoration?.includes('underline') ? 'none' : 'underline';
+
+      applyFormatting({ textDecoration: newTextDecoration });
+    }
+  };
+
+  const setFontSize = (size: string) => {
+    applyFormatting({ fontSize: `${size}px` });
+  };
+
+  const setFontFamily = (font: string) => {
+    applyFormatting({ fontFamily: font });
+  };
+
   const dragHandleStyle: React.CSSProperties = {
     position: 'absolute',
     padding: '4px',
@@ -215,7 +362,9 @@ const Create: React.FC = () => {
     margin: 0,
     padding: '1px',
     cursor: 'text',
-    fontSize: isMobile ? '0.875rem' : '1.125rem', // Thu nhỏ trên mobile (< 768px)
+    fontSize: isMobile ? '0.875rem' : '1.125rem',
+    userSelect: 'text',
+    fontFamily: 'Open Sans, sans-serif',
   };
 
   const logoStyle: React.CSSProperties = {
@@ -233,6 +382,7 @@ const Create: React.FC = () => {
         className="relative flex justify-center"
         onDragOver={handleDragOver}
         onDrop={handleDrop}
+        onMouseUp={handleTextSelect}
         style={{
           background: backgroundImage ? `url(${backgroundImage}) no-repeat center/cover` : 'linear-gradient(to bottom, #1e3c72, #2a5298)',
           aspectRatio: '7 / 4',
@@ -255,7 +405,7 @@ const Create: React.FC = () => {
         )}
         <div className="flex w-full h-full p-4">
           <div className="w-2/3 text-white p-4">
-            {/* Group 1: name và title */}
+            {/* Group 1: name and title */}
             <div
               ref={group1Ref}
               key="group1"
@@ -332,7 +482,7 @@ const Create: React.FC = () => {
               </p>
             </div>
 
-            {/* Group 3: email và website */}
+            {/* Group 3: email and website */}
             <div
               ref={group3Ref}
               key="group3"
@@ -391,6 +541,7 @@ const Create: React.FC = () => {
           </div>
         </div>
       </div>
+      
       <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} justify-center gap-4 mt-4`}>
         <div className={`flex gap-4 ${isMobile ? 'm-auto' : ''}`}>
           <label className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition cursor-pointer">
@@ -418,12 +569,23 @@ const Create: React.FC = () => {
           </button>
           <button
             className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition"
-            onClick={handleResetPosition}
+            onClick={resetPositions}
           >
             Reset position
           </button>
         </div>
       </div>
+      
+      <FormattingPopup
+        position={popupPosition}
+        onBold={applyBold}
+        onItalic={applyItalic}
+        onUnderline={applyUnderline}
+        onFontSizeChange={setFontSize}
+        onFontFamilyChange={setFontFamily}
+        onRemoveFormatting={removeFormatting}
+        visible={showPopup}
+      />
     </main>
   );
 };

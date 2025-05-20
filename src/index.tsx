@@ -9,7 +9,7 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <div className="flex flex-col h-screen">
+  <div className="flex flex-col h-screen text-[18px]">
     <BrowserRouter>
       <Header />
         <div className="flex-grow">
