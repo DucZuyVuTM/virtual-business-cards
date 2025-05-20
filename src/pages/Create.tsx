@@ -134,7 +134,7 @@ const Create = () => {
       const rect = cardRef.current.getBoundingClientRect();
       const symmetryAxisX = rect.width * 3 / 4;
       const logoX = rect.width / 4;
-      const logoY = (rect.height - 100) / 2;
+      const logoY = rect.height / 2;
       const spacing = isMobile ? 20 : 0;
       
       const group1Height = group1Ref.current?.getBoundingClientRect().height || 0;
@@ -143,12 +143,14 @@ const Create = () => {
       const group1Width = group1Ref.current?.getBoundingClientRect().width || 0;
       const group2Width = group2Ref.current?.getBoundingClientRect().width || 0;
       const group3Width = group3Ref.current?.getBoundingClientRect().width || 0;
+      const logoHeight = logoRef.current?.getBoundingClientRect().height || 0;
       const logoWidth = logoRef.current?.getBoundingClientRect().width || 0;
 
       const group1X = symmetryAxisX - group1Width / 2;
       const group2X = symmetryAxisX - group2Width / 2;
       const group3X = symmetryAxisX - group3Width / 2;
       const adjustedLogoX = logoX - logoWidth / 2;
+      const adjustedLogoY = logoY - logoHeight / 2;
 
       setCardData((prev) => ({
         ...prev,
@@ -156,7 +158,7 @@ const Create = () => {
           group1: { x: group1X, y: rect.height / 4 - group1Height / 2 - spacing },
           group2: { x: group2X, y: rect.height / 2 - group2Height / 2 },
           group3: { x: group3X, y: (rect.height * 3) / 4 - group3Height / 2 + spacing },
-          logo: { x: adjustedLogoX, y: logoY },
+          logo: { x: adjustedLogoX, y: adjustedLogoY },
         },
       }));
     }
@@ -441,6 +443,11 @@ const Create = () => {
     left: `${cardData.positions.logo.x}px`,
     top: `${cardData.positions.logo.y}px`,
     cursor: 'move',
+    width: isMobile ? '100px' : '200px',
+    height: isMobile ? '100px' : '200px',
+    display: 'flex', // Thêm flex để căn giữa
+    justifyContent: 'center', // Căn giữa theo chiều ngang
+    alignItems: 'center', // Căn giữa theo chiều dọc
   };
 
   return (
@@ -591,7 +598,7 @@ const Create = () => {
                   <img
                     src={logoImage}
                     alt="Logo"
-                    style={{ width: '100px', height: '100px', objectFit: 'contain' }}
+                    style={{ width: isMobile ? '100px' : '200px', height: isMobile ? '100px' : '200px', objectFit: 'contain' }}
                   />
                 ) : (
                   <>
