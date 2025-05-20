@@ -27,6 +27,7 @@ const Create = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
   const [selectedText, setSelectedText] = useState<Range | null>(null);
+  const [textColor, setTextColor] = useState<'white' | 'black'>('white');
 
   const cardRef = useRef<HTMLDivElement>(null);
   const group1Ref = useRef<HTMLDivElement>(null);
@@ -245,7 +246,6 @@ const Create = () => {
         Object.assign(span.style, style);
       }
 
-      // Cập nhật nội dung sau khi định dạng
       const parentP = targetElement?.closest('p');
       if (parentP) {
         const field = parentP.getAttribute('data-field') as keyof CardData;
@@ -272,13 +272,11 @@ const Create = () => {
     const range = selectedText;
     const commonAncestor = range.commonAncestorContainer;
 
-    // Tìm thẻ <p> cha gần nhất
     const parentP = range.commonAncestorContainer.nodeType === Node.ELEMENT_NODE
       ? (range.commonAncestorContainer as HTMLElement).closest('p')
       : range.commonAncestorContainer.parentElement?.closest('p');
     if (!parentP) return;
 
-    // Duyệt từ node chứa vùng chọn lên để tìm <span> trực tiếp
     let currentNode: Node | null = range.startContainer;
     let targetSpan: HTMLElement | null = null;
 
@@ -297,7 +295,6 @@ const Create = () => {
       intersection.setStart(range.startContainer, range.startOffset);
       intersection.setEnd(range.endContainer, range.endOffset);
 
-      // Tính toán giao nhau dựa trên ranh giới
       if (rangeInSpan.compareBoundaryPoints(Range.START_TO_START, intersection) <= 0 &&
           rangeInSpan.compareBoundaryPoints(Range.END_TO_END, intersection) >= 0) {
         const fragment = intersection.extractContents();
@@ -316,7 +313,6 @@ const Create = () => {
       }
     }
 
-    // Cập nhật nội dung sau khi xóa định dạng
     const field = parentP.getAttribute('data-field') as keyof CardData;
     if (field) {
       handleInput(field, parentP.innerHTML);
@@ -407,6 +403,10 @@ const Create = () => {
     applyFormatting({ fontFamily: font });
   };
 
+  const toggleTextColor = () => {
+    setTextColor((prev) => (prev === 'white' ? 'black' : 'white'));
+  };
+
   const dragHandleStyle: React.CSSProperties = {
     position: 'absolute',
     padding: '4px',
@@ -466,7 +466,7 @@ const Create = () => {
           />
         )}
         <div className="flex w-full h-full p-4">
-          <div className="w-2/3 text-white p-4">
+          <div className={`w-2/3 text-${textColor} p-4`}>
             {/* Group 1: name and title */}
             <div
               ref={group1Ref}
@@ -573,14 +573,14 @@ const Create = () => {
               style={logoStyle}
               className="outline-none focus:ring-2 focus:ring-blue-500 rounded"
             >
-              <label className="cursor-pointer text-white flex flex-col items-center">
+              <label className={`cursor-pointer text-${textColor} flex flex-col items-center`}>
                 <input
                   type="file"
                   className="hidden"
                   accept="image/*"
                   onChange={handleLogoUpload}
                 />
-                <svg className="w-16 h-16 mb-2" fill="none" stroke="white" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <svg className="w-16 h-16 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
                 <span>Upload your logo</span>
@@ -599,7 +599,7 @@ const Create = () => {
               accept="image/*"
               onChange={handleBackgroundUpload}
             />
-            Upload background
+            <p style={{ textAlign: "center" }}>Upload background</p>
           </label>
           <button
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
@@ -620,6 +620,14 @@ const Create = () => {
             onClick={resetPositions}
           >
             Reset position
+          </button>
+        </div>
+        <div className={`flex gap-4 ${isMobile ? 'm-auto' : ''}`}>
+          <button
+            className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition"
+            onClick={toggleTextColor}
+          >
+            Change text color
           </button>
         </div>
       </div>
