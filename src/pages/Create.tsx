@@ -192,10 +192,26 @@ const Create = () => {
 
       if (isWithinCard && selection.toString().trim().length > 0) {
         const rect = range.getBoundingClientRect();
-        setPopupPosition({ 
-          x: rect.left + window.scrollX, 
-          y: rect.top + window.scrollY + rect.height 
-        });
+        const popupWidth = 300; // Chiều rộng tối đa của popup (theo maxWidth trong FormattingPopup.tsx)
+        const windowWidth = window.innerWidth;
+        
+        // Tính toán vị trí x ban đầu
+        let x = rect.left + window.scrollX;
+        
+        // Kiểm tra nếu popup vượt ra ngoài rìa phải, điều chỉnh sang trái
+        if (x + popupWidth > windowWidth + window.scrollX) {
+          x = windowWidth + window.scrollX - popupWidth - 10; // Trừ thêm 10px để tạo khoảng cách với rìa
+        }
+        
+        // Đảm bảo popup không vượt ra ngoài rìa trái
+        if (x < window.scrollX) {
+          x = window.scrollX + 10; // Đặt cách rìa trái 10px
+        }
+
+        // Tính toán vị trí y (giữ nguyên logic ban đầu)
+        const y = rect.top + window.scrollY + rect.height;
+
+        setPopupPosition({ x, y });
         setSelectedText(range);
         setShowPopup(true);
       } else {
@@ -220,18 +236,15 @@ const Create = () => {
       const commonAncestor = range.commonAncestorContainer;
       let targetElement: HTMLElement | null = null;
 
-      // Tìm phần tử cha gần nhất là <span> hoặc phần tử có thể áp dụng style
       if (commonAncestor.nodeType === Node.TEXT_NODE) {
         targetElement = commonAncestor.parentElement;
       } else if (commonAncestor.nodeType === Node.ELEMENT_NODE) {
         targetElement = commonAncestor as HTMLElement;
       }
 
-      // Nếu targetElement là <span>, cập nhật style trực tiếp
       if (targetElement && targetElement.tagName.toLowerCase() === 'span') {
         Object.assign(targetElement.style, style);
       } else {
-        // Nếu không phải <span>, tạo mới một <span> và áp dụng style
         const span = document.createElement('span');
         range.surroundContents(span);
         Object.assign(span.style, style);

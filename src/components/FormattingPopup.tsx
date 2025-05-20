@@ -34,6 +34,9 @@ const FormattingPopup: React.FC<FormattingPopupProps> = ({
     display: visible ? 'flex' : 'none',
     gap: '4px',
     alignItems: 'center',
+    flexWrap: 'wrap', // Cho phép các phần tử xuống dòng khi cần
+    maxWidth: '300px', // Giới hạn chiều rộng tối đa để tránh tràn quá mức
+    justifyContent: 'flex-start',
   };
 
   const buttonStyle: React.CSSProperties = {
@@ -42,6 +45,7 @@ const FormattingPopup: React.FC<FormattingPopupProps> = ({
     border: '1px solid #ddd',
     borderRadius: '3px',
     cursor: 'pointer',
+    margin: '2px 0', // Thêm margin để tránh dính nhau khi xuống dòng
   };
 
   return (
