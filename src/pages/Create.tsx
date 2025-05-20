@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import FormattingPopup from '../components/FormattingPopup';
-import { CardData } from '../types/cardTypes';
+import EditableField from '../components/EditableField';
+import { CardData } from '../types/cardData';
 
 const Create = () => {
   const defaultData: CardData = {
@@ -192,23 +193,17 @@ const Create = () => {
 
       if (isWithinCard && selection.toString().trim().length > 0) {
         const rect = range.getBoundingClientRect();
-        const popupWidth = 300; // Chiều rộng tối đa của popup (theo maxWidth trong FormattingPopup.tsx)
+        const popupWidth = 300;
         const windowWidth = window.innerWidth;
         
-        // Tính toán vị trí x ban đầu
         let x = rect.left + window.scrollX;
-        
-        // Kiểm tra nếu popup vượt ra ngoài rìa phải, điều chỉnh sang trái
         if (x + popupWidth > windowWidth + window.scrollX) {
-          x = windowWidth + window.scrollX - popupWidth - 10; // Trừ thêm 10px để tạo khoảng cách với rìa
+          x = windowWidth + window.scrollX - popupWidth - 10;
         }
-        
-        // Đảm bảo popup không vượt ra ngoài rìa trái
         if (x < window.scrollX) {
-          x = window.scrollX + 10; // Đặt cách rìa trái 10px
+          x = window.scrollX + 10;
         }
 
-        // Tính toán vị trí y (giữ nguyên logic ban đầu)
         const y = rect.top + window.scrollY + rect.height;
 
         setPopupPosition({ x, y });
@@ -250,6 +245,15 @@ const Create = () => {
         Object.assign(span.style, style);
       }
 
+      // Cập nhật nội dung sau khi định dạng
+      const parentP = targetElement?.closest('p');
+      if (parentP) {
+        const field = parentP.getAttribute('data-field') as keyof CardData;
+        if (field) {
+          handleInput(field, parentP.innerHTML);
+        }
+      }
+
       setShowPopup(false);
       setSelectedText(null);
       selection?.removeAllRanges();
@@ -267,6 +271,15 @@ const Create = () => {
       const textContent = fragment.textContent || '';
       const textNode = document.createTextNode(textContent);
       range.insertNode(textNode);
+
+      // Cập nhật nội dung sau khi xóa định dạng
+      const parentP = range.commonAncestorContainer.parentElement?.closest('p');
+      if (parentP) {
+        const field = parentP.getAttribute('data-field') as keyof CardData;
+        if (field) {
+          handleInput(field, parentP.innerHTML);
+        }
+      }
 
       setShowPopup(false);
       setSelectedText(null);
@@ -428,24 +441,20 @@ const Create = () => {
               onMouseEnter={(e) => Object.assign(e.currentTarget.style, dragHandleHoverStyle)}
               onMouseLeave={(e) => Object.assign(e.currentTarget.style, { border: '4px dashed rgba(255, 255, 255, 0.3)' })}
             >
-              <p
-                contentEditable
-                suppressContentEditableWarning
-                onInput={(e) => handleInput('name', e.currentTarget.textContent || '')}
+              <EditableField
+                field="name"
+                value={cardData.name}
+                onChange={handleInput}
                 style={textElementStyle}
                 className={`font-bold ${cardData.name === '' ? 'empty:before:content-["Enter_name"] empty:before:text-gray-300' : ''}`}
-              >
-                {cardData.name}
-              </p>
-              <p
-                contentEditable
-                suppressContentEditableWarning
-                onInput={(e) => handleInput('title', e.currentTarget.textContent || '')}
+              />
+              <EditableField
+                field="title"
+                value={cardData.title}
+                onChange={handleInput}
                 style={textElementStyle}
                 className={`${cardData.title === '' ? 'empty:before:content-["Enter_title"] empty:before:text-gray-300' : ''}`}
-              >
-                {cardData.title}
-              </p>
+              />
             </div>
 
             {/* Group 2: organization, location, phone */}
@@ -462,33 +471,27 @@ const Create = () => {
               onMouseEnter={(e) => Object.assign(e.currentTarget.style, dragHandleHoverStyle)}
               onMouseLeave={(e) => Object.assign(e.currentTarget.style, { border: '4px dashed rgba(255, 255, 255, 0.3)' })}
             >
-              <p
-                contentEditable
-                suppressContentEditableWarning
-                onInput={(e) => handleInput('organization', e.currentTarget.textContent || '')}
+              <EditableField
+                field="organization"
+                value={cardData.organization}
+                onChange={handleInput}
                 style={textElementStyle}
                 className={`${cardData.organization === '' ? 'empty:before:content-["Enter_organization"] empty:before:text-gray-300' : ''}`}
-              >
-                {cardData.organization}
-              </p>
-              <p
-                contentEditable
-                suppressContentEditableWarning
-                onInput={(e) => handleInput('location', e.currentTarget.textContent || '')}
+              />
+              <EditableField
+                field="location"
+                value={cardData.location}
+                onChange={handleInput}
                 style={textElementStyle}
                 className={`${cardData.location === '' ? 'empty:before:content-["Enter_location"] empty:before:text-gray-300' : ''}`}
-              >
-                {cardData.location}
-              </p>
-              <p
-                contentEditable
-                suppressContentEditableWarning
-                onInput={(e) => handleInput('phone', e.currentTarget.textContent || '')}
+              />
+              <EditableField
+                field="phone"
+                value={cardData.phone}
+                onChange={handleInput}
                 style={textElementStyle}
                 className={`${cardData.phone === '' ? 'empty:before:content-["Enter_phone"] empty:before:text-gray-300' : ''}`}
-              >
-                {cardData.phone}
-              </p>
+              />
             </div>
 
             {/* Group 3: email and website */}
@@ -505,24 +508,20 @@ const Create = () => {
               onMouseEnter={(e) => Object.assign(e.currentTarget.style, dragHandleHoverStyle)}
               onMouseLeave={(e) => Object.assign(e.currentTarget.style, { border: '4px dashed rgba(255, 255, 255, 0.3)' })}
             >
-              <p
-                contentEditable
-                suppressContentEditableWarning
-                onInput={(e) => handleInput('email', e.currentTarget.textContent || '')}
+              <EditableField
+                field="email"
+                value={cardData.email}
+                onChange={handleInput}
                 style={textElementStyle}
                 className={`${cardData.email === '' ? 'empty:before:content-["Enter_email"] empty:before:text-gray-300' : ''}`}
-              >
-                {cardData.email}
-              </p>
-              <p
-                contentEditable
-                suppressContentEditableWarning
-                onInput={(e) => handleInput('website', e.currentTarget.textContent || '')}
+              />
+              <EditableField
+                field="website"
+                value={cardData.website}
+                onChange={handleInput}
                 style={textElementStyle}
                 className={`${cardData.website === '' ? 'empty:before:content-["Enter_website"] empty:before:text-gray-300' : ''}`}
-              >
-                {cardData.website}
-              </p>
+              />
             </div>
 
             {/* Logo */}
