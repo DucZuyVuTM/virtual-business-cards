@@ -190,7 +190,7 @@ const Create = () => {
       const commonAncestor = range.commonAncestorContainer;
       const isWithinCard = cardRef.current.contains(commonAncestor as Node);
 
-      if (isWithinCard && selection.toString().trim().length > 0) { // Chỉ hiển thị khi có văn bản được chọn
+      if (isWithinCard && selection.toString().trim().length > 0) {
         const rect = range.getBoundingClientRect();
         setPopupPosition({ 
           x: rect.left + window.scrollX, 
@@ -217,13 +217,25 @@ const Create = () => {
       selection?.addRange(selectedText);
 
       const range = selectedText;
-      const span = document.createElement('span');
-      
-      // Clone the contents of the range into the span
-      range.surroundContents(span);
+      const commonAncestor = range.commonAncestorContainer;
+      let targetElement: HTMLElement | null = null;
 
-      // Apply style to the span
-      Object.assign(span.style, style);
+      // Tìm phần tử cha gần nhất là <span> hoặc phần tử có thể áp dụng style
+      if (commonAncestor.nodeType === Node.TEXT_NODE) {
+        targetElement = commonAncestor.parentElement;
+      } else if (commonAncestor.nodeType === Node.ELEMENT_NODE) {
+        targetElement = commonAncestor as HTMLElement;
+      }
+
+      // Nếu targetElement là <span>, cập nhật style trực tiếp
+      if (targetElement && targetElement.tagName.toLowerCase() === 'span') {
+        Object.assign(targetElement.style, style);
+      } else {
+        // Nếu không phải <span>, tạo mới một <span> và áp dụng style
+        const span = document.createElement('span');
+        range.surroundContents(span);
+        Object.assign(span.style, style);
+      }
 
       setShowPopup(false);
       setSelectedText(null);
@@ -237,15 +249,10 @@ const Create = () => {
       selection?.removeAllRanges();
       selection?.addRange(selectedText);
 
-      // Get the parent element
       const range = selectedText;
       const fragment = range.extractContents();
-      
-      // Remove all formatting by getting just the text
-      const textContent = fragment.textContent;
-      
-      // Insert the plain text back
-      const textNode = document.createTextNode(textContent || '');
+      const textContent = fragment.textContent || '';
+      const textNode = document.createTextNode(textContent);
       range.insertNode(textNode);
 
       setShowPopup(false);
@@ -264,18 +271,14 @@ const Create = () => {
       const startContainer = range.startContainer;
       let parentElement: HTMLElement | null = null;
 
-      // Tìm phần tử cha gần nhất chứa đoạn text
       if (startContainer.nodeType === Node.TEXT_NODE) {
         parentElement = startContainer.parentElement;
       } else if (startContainer.nodeType === Node.ELEMENT_NODE) {
         parentElement = startContainer as HTMLElement;
       }
 
-      // Kiểm tra fontWeight hiện tại
       const computedStyle = parentElement ? window.getComputedStyle(parentElement) : null;
       const currentFontWeight = computedStyle?.fontWeight;
-
-      // Toggle fontWeight: nếu đã là bold (700 hoặc 'bold') thì chuyển về normal, ngược lại thì bold
       const newFontWeight = currentFontWeight === '700' || currentFontWeight === 'bold' ? 'normal' : 'bold';
 
       applyFormatting({ fontWeight: newFontWeight });
@@ -292,18 +295,14 @@ const Create = () => {
       const startContainer = range.startContainer;
       let parentElement: HTMLElement | null = null;
 
-      // Tìm phần tử cha gần nhất chứa đoạn text
       if (startContainer.nodeType === Node.TEXT_NODE) {
         parentElement = startContainer.parentElement;
       } else if (startContainer.nodeType === Node.ELEMENT_NODE) {
         parentElement = startContainer as HTMLElement;
       }
 
-      // Kiểm tra fontStyle hiện tại
       const computedStyle = parentElement ? window.getComputedStyle(parentElement) : null;
       const currentFontStyle = computedStyle?.fontStyle;
-
-      // Toggle fontStyle: nếu đã là italic thì chuyển về normal, ngược lại thì italic
       const newFontStyle = currentFontStyle === 'italic' ? 'normal' : 'italic';
 
       applyFormatting({ fontStyle: newFontStyle });
@@ -320,18 +319,14 @@ const Create = () => {
       const startContainer = range.startContainer;
       let parentElement: HTMLElement | null = null;
 
-      // Tìm phần tử cha gần nhất chứa đoạn text
       if (startContainer.nodeType === Node.TEXT_NODE) {
         parentElement = startContainer.parentElement;
       } else if (startContainer.nodeType === Node.ELEMENT_NODE) {
         parentElement = startContainer as HTMLElement;
       }
 
-      // Kiểm tra textDecoration hiện tại
       const computedStyle = parentElement ? window.getComputedStyle(parentElement) : null;
       const currentTextDecoration = computedStyle?.textDecorationLine || computedStyle?.textDecoration;
-
-      // Toggle textDecoration: nếu đã có underline thì chuyển về none, ngược lại thì underline
       const newTextDecoration = currentTextDecoration?.includes('underline') ? 'none' : 'underline';
 
       applyFormatting({ textDecoration: newTextDecoration });
