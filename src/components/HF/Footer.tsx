@@ -20,9 +20,9 @@ const Footer: React.FC = () => {
           </li>
           <li className="flex items-center gap-2">
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path d="M22 12c0-5.52-4.48-10-10-10S2 6.48 2 12c0 4.84 3.44 8.87 8 9.8V15H7v-3h3V9.5C10 7.57 11.57 6 13.5 6H16v3h-2c-.55 0-1 .45-1 1v2h3v3h-3v6.95c4.56-.91 8-4.94 8-9.95z" />
+              <path d="m12 0c-6.627 0-12 5.373-12 12s5.373 12 12 12 12-5.373 12-12c0-6.627-5.373-12-12-12zm5.894 8.221-1.97 9.28c-.145.658-.537.818-1.084.508l-3-2.21-1.446 1.394c-.14.18-.357.295-.6.295-.002 0-.003 0-.005 0l.213-3.054 5.56-5.022c.24-.213-.054-.334-.373-.121l-6.869 4.326-2.96-.924c-.64-.203-.658-.64.135-.954l11.566-4.458c.538-.196 1.006.128.832.941z" />
             </svg>
-            <span>Facebook: <a href="https://www.facebook.com/duczuyvu" className="footer__link hover:text-blue-200 transition-colors">Vũ Đức Duy</a></span>
+            <span>Telegram: <a href="https://t.me/VDZuy15inTM" className="footer__link hover:text-blue-200 transition-colors">@VDZuy15inTM</a></span>
           </li>
         </ul>
       </div>
