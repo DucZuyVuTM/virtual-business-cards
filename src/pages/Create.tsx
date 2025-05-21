@@ -30,7 +30,6 @@ const Create = () => {
   const [selectedText, setSelectedText] = useState<Range | null>(null);
   const [textColor, setTextColor] = useState<'white' | 'black'>('white');
   const [touchOffset, setTouchOffset] = useState<{ offsetX: number; offsetY: number } | null>(null);
-  const [shouldResetPositions, setShouldResetPositions] = useState(true); // Thêm cờ để kiểm soát reset
 
   const cardRef = useRef<HTMLDivElement>(null);
   const group1Ref = useRef<HTMLDivElement>(null);
@@ -42,7 +41,6 @@ const Create = () => {
     resetPositions();
   };
 
-  // Load Open Sans font và xử lý resize
   useEffect(() => {
     const link = document.createElement('link');
     link.href = 'https://fonts.googleapis.com/css2?family=Open+Sans&display=swap';
@@ -78,7 +76,6 @@ const Create = () => {
   }, []);
 
   const handleInput = (field: keyof CardData, value: string) => {
-    setShouldResetPositions(false);
     setCardData((prev) => ({ ...prev, [field]: value }));
   };
 
@@ -464,12 +461,15 @@ const Create = () => {
     border: `4px dashed ${textColor === 'white' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'}`,
     cursor: 'move',
     borderRadius: '4px',
-    maxWidth: '200px',
+    maxWidth: '5000px',  // Giới hạn chiều rộng tối đa
+    maxHeight: '5000px', // Giới hạn chiều cao tối đa
     touchAction: 'none',
   };
 
   const dragHandleHoverStyle: React.CSSProperties = {
     border: `4px dashed ${textColor === 'white' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'}`,
+    maxWidth: '5000px',  // Đảm bảo giới hạn vẫn áp dụng khi hover
+    maxHeight: '5000px',
   };
 
   const textElementStyle: React.CSSProperties = {
