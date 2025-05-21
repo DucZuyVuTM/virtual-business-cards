@@ -11,7 +11,7 @@ const Header: React.FC = () => {
 
   const handleNavClick = (path: string) => {
     setIsMenuOpen(false);
-    navigate(path === '/' ? '/virtual-business-cards/' : path);
+    navigate(path);
   };
 
   return (
@@ -30,25 +30,41 @@ const Header: React.FC = () => {
           } sm:flex absolute sm:static top-16 left-0 right-0 bg-blue-800 sm:bg-transparent p-4 sm:p-0 z-[100]`}
         >
           <li className="flex justify-center items-center">
-            <NavLink to="/" className="header__link" onClick={(e) => {
-              e.preventDefault(); // Ngăn hành vi mặc định
-              handleNavClick('/'); // Sử dụng hàm điều hướng tùy chỉnh
-            }}>
+            <NavLink
+              to="/"
+              className="header__link"
+              onClick={(e) => {
+                e.preventDefault();
+                handleNavClick('/');
+              }}
+            >
               Home
             </NavLink>
           </li>
           <li className="flex justify-center items-center">
-            <NavLink to="/create" className="header__link" onClick={() => setIsMenuOpen(false)}>
+            <NavLink
+              to="/create"
+              className="header__link"
+              onClick={() => setIsMenuOpen(false)}
+            >
               Create
             </NavLink>
           </li>
           <li className="flex justify-center items-center">
-            <NavLink to="/templates" className="header__link" onClick={() => setIsMenuOpen(false)}>
+            <NavLink
+              to="/templates"
+              className="header__link"
+              onClick={() => setIsMenuOpen(false)}
+            >
               Templates
             </NavLink>
           </li>
           <li className="flex justify-center items-center">
-            <NavLink to="/profile" className="header__link" onClick={() => setIsMenuOpen(false)}>
+            <NavLink
+              to="/profile"
+              className="header__link"
+              onClick={() => setIsMenuOpen(false)}
+            >
               Profile
             </NavLink>
           </li>

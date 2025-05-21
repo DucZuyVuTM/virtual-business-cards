@@ -18,6 +18,7 @@ export default {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.[contenthash].js',
     clean: true,
+    publicPath: '/virtual-business-cards/',
   },
   module: {
     rules: [
@@ -27,7 +28,7 @@ export default {
         use: {
           loader: 'ts-loader',
           options: {
-            transpileOnly: true, // Bỏ qua kiểm tra kiểu để xác định lỗi
+            transpileOnly: true,
           },
         },
       },
@@ -68,7 +69,12 @@ export default {
     static: path.join(__dirname, 'dist'),
     compress: true,
     port: 3000,
-    historyApiFallback: true,
+    historyApiFallback: {
+      index: '/virtual-business-cards/index.html',
+      rewrites: [
+        { from: /^\/virtual-business-cards\/.*$/, to: '/virtual-business-cards/index.html' },
+      ],
+    },
   },
   devtool: process.env.NODE_ENV === 'production' ? false : 'source-map',
 };
