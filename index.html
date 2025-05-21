@@ -8,16 +8,23 @@
     <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.22.9/babel.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script type="module" src="/src/index.jsx"></script>
+    <script type="module" src="/src/index.tsx"></script>
 </head>
 <body>
     <div id="root"></div>
     <script>
-        if (window.location.pathname === '/virtual-business-cards/') {
+        const currentPath = window.location.pathname;
+        const currentHash = window.location.hash;
+
+        if (currentPath === '/virtual-business-cards' && currentHash === '') {
+            window.location.pathname += '/';
             window.location.hash = '/';
-        } else if (window.location.pathname === '/virtual-business-cards') {
-            window.location.pathname += '/'
+        } else if (currentPath === '/virtual-business-cards/' && currentHash === '') {
             window.location.hash = '/';
+        } else {
+            if (currentHash === '') {
+                window.location.hash = '/';
+            }
         }
     </script>
 </body>
