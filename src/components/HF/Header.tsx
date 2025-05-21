@@ -1,11 +1,17 @@
 import React, { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 
 const Header: React.FC = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const navigate = useNavigate();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
+  };
+
+  const handleNavClick = (path: string) => {
+    setIsMenuOpen(false);
+    navigate(path === '/' ? '/virtual-business-cards/' : path);
   };
 
   return (
@@ -24,7 +30,10 @@ const Header: React.FC = () => {
           } sm:flex absolute sm:static top-16 left-0 right-0 bg-blue-800 sm:bg-transparent p-4 sm:p-0 z-[100]`}
         >
           <li className="flex justify-center items-center">
-            <NavLink to="/" className="header__link" onClick={() => setIsMenuOpen(false)}>
+            <NavLink to="/" className="header__link" onClick={(e) => {
+              e.preventDefault(); // Ngăn hành vi mặc định
+              handleNavClick('/'); // Sử dụng hàm điều hướng tùy chỉnh
+            }}>
               Home
             </NavLink>
           </li>

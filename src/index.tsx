@@ -1,4 +1,3 @@
-import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
@@ -10,7 +9,7 @@ import Footer from './components/HF/Footer';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <div className="flex flex-col h-screen text-[18px]">
-    <BrowserRouter>
+    <BrowserRouter basename="/virtual-business-cards">
       <Header />
         <div className="flex-grow">
           <Routes>

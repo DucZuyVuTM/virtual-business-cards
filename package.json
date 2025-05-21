@@ -1,12 +1,15 @@
 {
   "name": "virtual-business-cards",
+  "homepage": "https://duczuyvutm.github.io/virtual-business-cards/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
     "start": "webpack-dev-server --open --mode development",
     "build": "webpack --mode production",
-    "preview": "webpack --mode production && npx serve dist"
+    "preview": "webpack --mode production && npx serve dist",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "react": "^18.2.0",
@@ -22,6 +25,7 @@
     "@types/react-dom": "^18.2.0",
     "autoprefixer": "^10.4.18",
     "css-loader": "^6.10.0",
+    "gh-pages": "^6.3.0",
     "html-webpack-plugin": "^5.6.0",
     "mini-css-extract-plugin": "^2.8.1",
     "postcss": "^8.4.35",

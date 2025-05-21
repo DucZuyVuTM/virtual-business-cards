@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import FormattingPopup from '../components/FormattingPopup';
 import EditableField from '../components/EditableField';
 import { CardData } from '../types/cardData';
@@ -29,6 +29,8 @@ const Create = () => {
   const [popupPosition, setPopupPosition] = useState({ x: 0, y: 0 });
   const [selectedText, setSelectedText] = useState<Range | null>(null);
   const [textColor, setTextColor] = useState<'white' | 'black'>('white');
+  const [touchOffset, setTouchOffset] = useState<{ offsetX: number; offsetY: number } | null>(null);
+  const [shouldResetPositions, setShouldResetPositions] = useState(true); // Thêm cờ để kiểm soát reset
 
   const cardRef = useRef<HTMLDivElement>(null);
   const group1Ref = useRef<HTMLDivElement>(null);
@@ -36,23 +38,26 @@ const Create = () => {
   const group3Ref = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
 
-  // Load Open Sans font
+  const initializeCardPositions = () => {
+    resetPositions();
+  };
+
+  // Load Open Sans font và xử lý resize
   useEffect(() => {
     const link = document.createElement('link');
     link.href = 'https://fonts.googleapis.com/css2?family=Open+Sans&display=swap';
     link.rel = 'stylesheet';
     document.head.appendChild(link);
 
+    initializeCardPositions();
+
     const handleResize = () => {
-      if (cardRef.current) {
-        resetPositions();
-      }
       setIsMobile(window.innerWidth < 768);
     };
 
-    const handleClickOutside = (e: MouseEvent) => {
+    const handleClickOutside = (e: MouseEvent | TouchEvent) => {
       if (cardRef.current && !cardRef.current.contains(e.target as Node) && 
-          !(e.target as HTMLElement).closest('.formatting-popup')) {
+          !(e.target as HTMLElement)?.closest('.formatting-popup')) {
         setShowPopup(false);
         setSelectedText(null);
         window.getSelection()?.removeAllRanges();
@@ -62,22 +67,25 @@ const Create = () => {
     handleResize();
     window.addEventListener('resize', handleResize);
     document.addEventListener('mousedown', handleClickOutside);
-    
+    document.addEventListener('touchend', handleClickOutside);
+
     return () => {
       window.removeEventListener('resize', handleResize);
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchend', handleClickOutside);
       document.head.removeChild(link);
     };
   }, []);
 
   const handleInput = (field: keyof CardData, value: string) => {
+    setShouldResetPositions(false);
     setCardData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleDragStart = (e: React.DragEvent, field: string) => {
     setIsDragging(field);
     e.dataTransfer.setData('text/plain', field);
-    const target = e.currentTarget;
+    const target = e.currentTarget as HTMLElement;
     const rect = target.getBoundingClientRect();
     const offsetX = e.clientX - rect.left;
     const offsetY = e.clientY - rect.top;
@@ -109,6 +117,40 @@ const Create = () => {
       }));
       setIsDragging(null);
     }
+  };
+
+  const handleTouchStart = (e: React.TouchEvent, field: string) => {
+    e.preventDefault();
+    setIsDragging(field);
+    const touch = e.touches[0];
+    const target = e.currentTarget as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    const offsetX = touch.clientX - rect.left;
+    const offsetY = touch.clientY - rect.top;
+    setTouchOffset({ offsetX, offsetY });
+  };
+
+  const handleTouchMove = useCallback((e: React.TouchEvent) => {
+    if (isDragging && cardRef.current && touchOffset) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = cardRef.current.getBoundingClientRect();
+      const x = Math.max(0, Math.min(touch.clientX - rect.left - touchOffset.offsetX, rect.width - 100));
+      const y = Math.max(0, Math.min(touch.clientY - rect.top - touchOffset.offsetY, rect.height - 20));
+
+      setCardData((prev) => ({
+        ...prev,
+        positions: {
+          ...prev.positions,
+          [isDragging]: { x, y },
+        },
+      }));
+    }
+  }, [isDragging, cardRef, touchOffset]);
+
+  const handleTouchEnd = () => {
+    setIsDragging(null);
+    setTouchOffset(null);
   };
 
   const handleSave = () => {
@@ -190,7 +232,7 @@ const Create = () => {
     }
   };
 
-  const handleTextSelect = (e: React.MouseEvent) => {
+  const handleTextSelect = (e: React.MouseEvent | React.TouchEvent) => {
     if ((e.target as HTMLElement).closest('.formatting-popup')) {
       return;
     }
@@ -423,6 +465,7 @@ const Create = () => {
     cursor: 'move',
     borderRadius: '4px',
     maxWidth: '200px',
+    touchAction: 'none',
   };
 
   const dragHandleHoverStyle: React.CSSProperties = {
@@ -445,9 +488,10 @@ const Create = () => {
     cursor: 'move',
     width: isMobile ? '100px' : '200px',
     height: isMobile ? '100px' : '200px',
-    display: 'flex', // Thêm flex để căn giữa
-    justifyContent: 'center', // Căn giữa theo chiều ngang
-    alignItems: 'center', // Căn giữa theo chiều dọc
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    touchAction: 'none',
   };
 
   return (
@@ -459,6 +503,7 @@ const Create = () => {
         onDragOver={handleDragOver}
         onDrop={handleDrop}
         onMouseUp={handleTextSelect}
+        onTouchMove={handleTouchMove}
         style={{
           background: backgroundImage ? `url(${backgroundImage}) no-repeat center/cover` : 'linear-gradient(to bottom, #1e3c72, #2a5298)',
           aspectRatio: '7 / 4',
@@ -468,6 +513,7 @@ const Create = () => {
           borderRadius: '10px',
           overflow: 'hidden',
           position: 'relative',
+          touchAction: 'none',
         }}
       >
         {!backgroundImage && (
@@ -487,6 +533,7 @@ const Create = () => {
               key="group1"
               draggable
               onDragStart={(e) => handleDragStart(e, 'group1')}
+              onTouchStart={(e) => handleTouchStart(e, 'group1')}
               style={{
                 ...dragHandleStyle,
                 left: `${cardData.positions.group1.x}px`,
@@ -517,6 +564,7 @@ const Create = () => {
               key="group2"
               draggable
               onDragStart={(e) => handleDragStart(e, 'group2')}
+              onTouchStart={(e) => handleTouchStart(e, 'group2')}
               style={{
                 ...dragHandleStyle,
                 left: `${cardData.positions.group2.x}px`,
@@ -554,6 +602,7 @@ const Create = () => {
               key="group3"
               draggable
               onDragStart={(e) => handleDragStart(e, 'group3')}
+              onTouchStart={(e) => handleTouchStart(e, 'group3')}
               style={{
                 ...dragHandleStyle,
                 left: `${cardData.positions.group3.x}px`,
@@ -584,8 +633,10 @@ const Create = () => {
               key="logo"
               draggable
               onDragStart={(e) => handleDragStart(e, 'logo')}
+              onTouchStart={(e) => handleTouchStart(e, 'logo')}
               style={logoStyle}
               className="outline-none focus:ring-2 focus:ring-blue-500 rounded"
+              onTouchEnd={handleTouchEnd}
             >
               <label className={`cursor-pointer flex flex-col items-center ${logoImage ? '' : `text-${textColor}`}`}>
                 <input
