@@ -1,4 +1,5 @@
 export interface CardData {
+  id: string;
   name: string;
   title: string;
   organization: string;
@@ -12,4 +13,11 @@ export interface CardData {
     group3: { x: number; y: number };
     logo: { x: number; y: number };
   };
+  backgroundImage?: string | null;
+  logoImage?: string | null;
+  imageData?: string; // Thêm trường để lưu ảnh
+}
+
+export interface CardsState {
+  cards: CardData[];
 }

@@ -1,10 +1,14 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
+import html2canvas from 'html2canvas';
 import FormattingPopup from '../components/FormattingPopup';
 import EditableField from '../components/EditableField';
-import { CardData } from '../types/cardData';
+import { CardData, CardsState } from '../types/cardData';
+import { v4 as uuidv4 } from 'uuid';
 
 const Create = () => {
   const defaultData: CardData = {
+    id: uuidv4(),
     name: 'John Doe',
     title: 'Position',
     organization: 'Organization',
@@ -18,6 +22,8 @@ const Create = () => {
       group3: { x: 0, y: 0 },
       logo: { x: 0, y: 0 },
     },
+    backgroundImage: null,
+    logoImage: null,
   };
 
   const [cardData, setCardData] = useState<CardData>(defaultData);
@@ -36,6 +42,7 @@ const Create = () => {
   const group2Ref = useRef<HTMLDivElement>(null);
   const group3Ref = useRef<HTMLDivElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   const initializeCardPositions = () => {
     resetPositions();
@@ -150,9 +157,41 @@ const Create = () => {
     setTouchOffset(null);
   };
 
-  const handleSave = () => {
-    console.log('Saved card data:', cardData);
-    alert('Card data saved! Check console for details.');
+  const handleSave = async () => {
+    if (cardRef.current) {
+      // Tạm thời ẩn đường dash
+      const draggableElements = [group1Ref, group2Ref, group3Ref, logoRef];
+      draggableElements.forEach((ref) => {
+        if (ref.current) {
+          ref.current.style.border = 'none';
+        }
+      });
+
+      const canvas = await html2canvas(cardRef.current, {
+        scale: window.devicePixelRatio,
+        useCORS: true,
+        backgroundColor: null,
+      });
+
+      // Khôi phục đường dash
+      draggableElements.forEach((ref) => {
+        if (ref.current) {
+          ref.current.style.border = `4px dashed ${textColor === 'white' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'}`;
+        }
+      });
+
+      const imageData = canvas.toDataURL('image/png');
+      const savedData: CardsState = JSON.parse(localStorage.getItem('savedCards') || '{"cards": []}');
+      const newCard: CardData = {
+        ...cardData,
+        backgroundImage,
+        logoImage,
+        id: uuidv4(),
+      };
+      savedData.cards.push({ ...newCard, imageData });
+      localStorage.setItem('savedCards', JSON.stringify(savedData));
+      navigate('/profile');
+    }
   };
 
   const handleResetInfo = () => {
@@ -461,14 +500,14 @@ const Create = () => {
     border: `4px dashed ${textColor === 'white' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'}`,
     cursor: 'move',
     borderRadius: '4px',
-    maxWidth: '5000px',  // Giới hạn chiều rộng tối đa
-    maxHeight: '5000px', // Giới hạn chiều cao tối đa
+    maxWidth: '5000px',
+    maxHeight: '5000px',
     touchAction: 'none',
   };
 
   const dragHandleHoverStyle: React.CSSProperties = {
     border: `4px dashed ${textColor === 'white' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'}`,
-    maxWidth: '5000px',  // Đảm bảo giới hạn vẫn áp dụng khi hover
+    maxWidth: '5000px',
     maxHeight: '5000px',
   };
 
@@ -488,6 +527,8 @@ const Create = () => {
     cursor: 'move',
     width: isMobile ? '100px' : '200px',
     height: isMobile ? '100px' : '200px',
+    maxWidth: '5000px',
+    maxHeight: '5000px',
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
