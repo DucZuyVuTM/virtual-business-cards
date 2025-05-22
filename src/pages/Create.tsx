@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import FormattingPopup from '../components/FormattingPopup';
 import EditableField from '../components/EditableField';
-import { CardData, CardsState } from '../types/cardData';
+import { CardData } from '../types/cardData';
 import { v4 as uuidv4 } from 'uuid';
 
 const Create = () => {
@@ -36,9 +36,9 @@ const Create = () => {
   const [selectedText, setSelectedText] = useState<Range | null>(null);
   const [textColor, setTextColor] = useState<'white' | 'black'>('white');
   const [touchOffset, setTouchOffset] = useState<{ offsetX: number; offsetY: number } | null>(null);
-  const [showImageUrlPopup, setShowImageUrlPopup] = useState(false); // State cho popup nhập URL
-  const [logoUrlInput, setLogoUrlInput] = useState(''); // State cho URL logo
-  const [backgroundUrlInput, setBackgroundUrlInput] = useState(''); // State cho URL background
+  const [showImageUrlPopup, setShowImageUrlPopup] = useState(false);
+  const [logoUrlInput, setLogoUrlInput] = useState('');
+  const [backgroundUrlInput, setBackgroundUrlInput] = useState('');
 
   const cardRef = useRef<HTMLDivElement>(null);
   const group1Ref = useRef<HTMLDivElement>(null);
@@ -181,16 +181,38 @@ const Create = () => {
         }
       });
 
+      // Chuyển canvas thành base64
       const imageData = canvas.toDataURL('image/png');
-      const savedData: CardsState = JSON.parse(localStorage.getItem('savedCards') || '{"cards": []}');
+
+      // Lưu imageData vào Neon
+      const newCardId = uuidv4();
+      const saveImageResponse = await fetch('http://localhost:5000/api/save-image', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: newCardId, imageData }),
+      });
+      const saveImageResult = await saveImageResponse.json();
+      if (!saveImageResponse.ok) {
+        throw new Error(saveImageResult.error || 'Failed to save image to Neon');
+      }
+
+      // Chuẩn bị dữ liệu card để lưu vào localStorage (ngoại trừ imageData)
       const newCard: CardData = {
         ...cardData,
-        backgroundImage: backgroundImage, // Lưu URL thay vì base64
-        logoImage: logoImage, // Lưu URL thay vì base64
-        id: uuidv4(),
+        id: newCardId,
+        backgroundImage: backgroundImage,
+        logoImage: logoImage,
+        imageData: undefined, // Không lưu imageData vào localStorage
       };
-      savedData.cards.push({ ...newCard, imageData });
-      localStorage.setItem('savedCards', JSON.stringify(savedData));
+
+      // Lưu card vào localStorage với key 'savedCards'
+      const storedCards = JSON.parse(localStorage.getItem('savedCards') || '{"cards": []}');
+      storedCards.cards = storedCards.cards || [];
+      storedCards.cards.push(newCard);
+      localStorage.setItem('savedCards', JSON.stringify(storedCards));
+
       navigate('/profile');
     }
   };
@@ -469,7 +491,6 @@ const Create = () => {
     setTextColor((prev) => (prev === 'white' ? 'black' : 'white'));
   };
 
-  // Xử lý khi người dùng xác nhận URL trong popup
   const handleImageUrlSubmit = () => {
     if (logoUrlInput) {
       setLogoImage(logoUrlInput);
@@ -680,7 +701,7 @@ const Create = () => {
                     src={logoImage}
                     alt="Logo"
                     style={{ width: isMobile ? '100px' : '200px', height: isMobile ? '100px' : '200px', objectFit: 'contain' }}
-                    onError={() => setLogoImage(null)} // Xử lý lỗi nếu URL không hợp lệ
+                    onError={() => setLogoImage(null)}
                   />
                 ) : (
                   <>
@@ -735,7 +756,6 @@ const Create = () => {
         </div>
       </div>
       
-      {/* Popup nhập URL cho logo và background */}
       {showImageUrlPopup && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
