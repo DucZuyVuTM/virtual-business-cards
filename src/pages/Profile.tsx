@@ -54,11 +54,18 @@ const Profile: React.FC = () => {
 
   return (
     <main className="profile container mx-auto p-4">
-      <h2 className="text-2xl mb-4 text-center">Your Profile</h2>
+      <h2 className="text-2xl mb-4 text-center">
+        Your Profile -- {cards.length} card{cards.length !== 1 ? 's' : ''}
+      </h2>
       {cards.length === 0 ? (
         <p className="text-center">No saved cards.</p>
       ) : (
-        <div className="flex flex-col gap-4">
+        <div
+          className="grid gap-4"
+          style={{
+            gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
+          }}
+        >
           {cards.map((card) => (
             <div
               key={card.id}
@@ -103,16 +110,16 @@ const Profile: React.FC = () => {
             style={{
               width: '100%',
               maxWidth: isMobile ? '90%' : '700px',
-              maxHeight: 'calc(100vh - 100px)', // Tăng không gian để chứa cả ảnh và nút
-              overflowY: 'auto', // Cho phép cuộn nếu nội dung vượt quá
+              maxHeight: 'calc(100vh - 100px)',
+              overflowY: 'auto',
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div
               className="relative w-full"
               style={{
-                aspectRatio: '7 / 4', // Giữ tỷ lệ cho ảnh
-                maxHeight: '80vh', // Đảm bảo ảnh không vượt quá viewport
+                aspectRatio: '7 / 4',
+                maxHeight: '80vh',
               }}
             >
               <img

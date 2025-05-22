@@ -15,7 +15,7 @@ export interface CardData {
   };
   backgroundImage?: string | null;
   logoImage?: string | null;
-  imageData?: string; // Thêm trường để lưu ảnh
+  imageData?: string;
 }
 
 export interface CardsState {
