@@ -36,6 +36,9 @@ const Create = () => {
   const [selectedText, setSelectedText] = useState<Range | null>(null);
   const [textColor, setTextColor] = useState<'white' | 'black'>('white');
   const [touchOffset, setTouchOffset] = useState<{ offsetX: number; offsetY: number } | null>(null);
+  const [showImageUrlPopup, setShowImageUrlPopup] = useState(false); // State cho popup nhập URL
+  const [logoUrlInput, setLogoUrlInput] = useState(''); // State cho URL logo
+  const [backgroundUrlInput, setBackgroundUrlInput] = useState(''); // State cho URL background
 
   const cardRef = useRef<HTMLDivElement>(null);
   const group1Ref = useRef<HTMLDivElement>(null);
@@ -159,7 +162,6 @@ const Create = () => {
 
   const handleSave = async () => {
     if (cardRef.current) {
-      // Tạm thời ẩn đường dash
       const draggableElements = [group1Ref, group2Ref, group3Ref, logoRef];
       draggableElements.forEach((ref) => {
         if (ref.current) {
@@ -173,7 +175,6 @@ const Create = () => {
         backgroundColor: null,
       });
 
-      // Khôi phục đường dash
       draggableElements.forEach((ref) => {
         if (ref.current) {
           ref.current.style.border = `4px dashed ${textColor === 'white' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'}`;
@@ -184,8 +185,8 @@ const Create = () => {
       const savedData: CardsState = JSON.parse(localStorage.getItem('savedCards') || '{"cards": []}');
       const newCard: CardData = {
         ...cardData,
-        backgroundImage,
-        logoImage,
+        backgroundImage: backgroundImage, // Lưu URL thay vì base64
+        logoImage: logoImage, // Lưu URL thay vì base64
         id: uuidv4(),
       };
       savedData.cards.push({ ...newCard, imageData });
@@ -239,32 +240,6 @@ const Create = () => {
           logo: { x: adjustedLogoX, y: adjustedLogoY },
         },
       }));
-    }
-  };
-
-  const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setLogoImage(event.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleBackgroundUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setBackgroundImage(event.target.result as string);
-        }
-      };
-      reader.readAsDataURL(file);
     }
   };
 
@@ -494,6 +469,25 @@ const Create = () => {
     setTextColor((prev) => (prev === 'white' ? 'black' : 'white'));
   };
 
+  // Xử lý khi người dùng xác nhận URL trong popup
+  const handleImageUrlSubmit = () => {
+    if (logoUrlInput) {
+      setLogoImage(logoUrlInput);
+    }
+    if (backgroundUrlInput) {
+      setBackgroundImage(backgroundUrlInput);
+    }
+    setShowImageUrlPopup(false);
+    setLogoUrlInput('');
+    setBackgroundUrlInput('');
+  };
+
+  const openImageUrlPopup = () => {
+    setShowImageUrlPopup(true);
+    setLogoUrlInput(logoImage || '');
+    setBackgroundUrlInput(backgroundImage || '');
+  };
+
   const dragHandleStyle: React.CSSProperties = {
     position: 'absolute',
     padding: '4px',
@@ -678,29 +672,25 @@ const Create = () => {
               style={logoStyle}
               className="outline-none focus:ring-2 focus:ring-blue-500 rounded"
               onTouchEnd={handleTouchEnd}
+              onClick={openImageUrlPopup}
             >
-              <label className={`cursor-pointer flex flex-col items-center ${logoImage ? '' : `text-${textColor}`}`}>
-                <input
-                  type="file"
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleLogoUpload}
-                />
+              <div className={`cursor-pointer flex flex-col items-center ${logoImage ? '' : `text-${textColor}`}`}>
                 {logoImage ? (
                   <img
                     src={logoImage}
                     alt="Logo"
                     style={{ width: isMobile ? '100px' : '200px', height: isMobile ? '100px' : '200px', objectFit: 'contain' }}
+                    onError={() => setLogoImage(null)} // Xử lý lỗi nếu URL không hợp lệ
                   />
                 ) : (
                   <>
                     <svg className="w-16 h-16 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                    <span>Upload your logo</span>
+                    <span>Click to add logo URL</span>
                   </>
                 )}
-              </label>
+              </div>
             </div>
           </div>
         </div>
@@ -708,15 +698,12 @@ const Create = () => {
       
       <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} justify-center gap-4 mt-4`}>
         <div className={`flex gap-4 ${isMobile ? 'm-auto' : ''}`}>
-          <label className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition cursor-pointer">
-            <input
-              type="file"
-              className="hidden"
-              accept="image/*"
-              onChange={handleBackgroundUpload}
-            />
-            <p style={{ textAlign: "center" }}>Upload background</p>
-          </label>
+          <button
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+            onClick={openImageUrlPopup}
+          >
+            Add Image URLs
+          </button>
           <button
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
             onClick={handleSave}
@@ -748,6 +735,59 @@ const Create = () => {
         </div>
       </div>
       
+      {/* Popup nhập URL cho logo và background */}
+      {showImageUrlPopup && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          onClick={() => setShowImageUrlPopup(false)}
+        >
+          <div
+            className="bg-white rounded-lg p-6 w-full max-w-md"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-bold mb-4">Add Image URLs</h3>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Logo Image URL
+              </label>
+              <input
+                type="url"
+                value={logoUrlInput}
+                onChange={(e) => setLogoUrlInput(e.target.value)}
+                placeholder="https://example.com/logo.png"
+                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Background Image URL
+              </label>
+              <input
+                type="url"
+                value={backgroundUrlInput}
+                onChange={(e) => setBackgroundUrlInput(e.target.value)}
+                placeholder="https://example.com/background.jpg"
+                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+            </div>
+            <div className="flex gap-2 justify-end">
+              <button
+                className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition"
+                onClick={() => setShowImageUrlPopup(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+                onClick={handleImageUrlSubmit}
+              >
+                Submit
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <FormattingPopup
         position={popupPosition}
         onBold={applyBold}
