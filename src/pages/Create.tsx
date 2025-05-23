@@ -563,8 +563,8 @@ const Create = () => {
         style={{
           background: backgroundImage ? `url(${backgroundImage}) no-repeat center/cover` : 'linear-gradient(to bottom, #1e3c72, #2a5298)',
           aspectRatio: '7 / 4',
-          maxWidth: '100%',
-          maxHeight: 'calc(100vh - 200px)',
+          maxWidth: '608px',
+          maxHeight: '348px',
           margin: '0 auto',
           borderRadius: '10px',
           overflow: 'hidden',
