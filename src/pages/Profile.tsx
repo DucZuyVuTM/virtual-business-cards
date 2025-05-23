@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { CardData, CardsState } from '../types/cardData';
 
+const BACKEND_URL = "http://localhost:5000";
+
 const Profile: React.FC = () => {
   const [cards, setCards] = useState<CardData[]>([]);
   const [imageDataMap, setImageDataMap] = useState<{ [key: string]: string }>({});
@@ -17,7 +19,7 @@ const Profile: React.FC = () => {
     // Lấy imageData từ Neon
     const fetchImages = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/get-images');
+        const response = await fetch(`${BACKEND_URL}/api/get-images`);
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data.error || 'Failed to fetch images');
@@ -50,7 +52,7 @@ const Profile: React.FC = () => {
   const handleDeleteCard = async (id: string) => {
     try {
       // Xóa từ Neon
-      const deleteResponse = await fetch(`http://localhost:5000/api/delete-card/${id}`, {
+      const deleteResponse = await fetch(`${BACKEND_URL}/api/delete-card/${id}`, {
         method: 'DELETE',
       });
       const deleteResult = await deleteResponse.json();

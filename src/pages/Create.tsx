@@ -6,6 +6,8 @@ import EditableField from '../components/EditableField';
 import { CardData } from '../types/cardData';
 import { v4 as uuidv4 } from 'uuid';
 
+const BACKEND_URL = "http://localhost:5000";
+
 const Create = () => {
   const defaultData: CardData = {
     id: uuidv4(),
@@ -160,6 +162,17 @@ const Create = () => {
     setTouchOffset(null);
   };
 
+  // Hàm tải hình ảnh với Promise
+  const loadImage = (url: string): Promise<void> => {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      img.src = url;
+      img.crossOrigin = 'Anonymous'; // Đảm bảo CORS cho html2canvas
+      img.onload = () => resolve();
+      img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
+    });
+  };
+
   const handleSave = async () => {
     if (cardRef.current) {
       const draggableElements = [group1Ref, group2Ref, group3Ref, logoRef];
@@ -169,51 +182,73 @@ const Create = () => {
         }
       });
 
-      const canvas = await html2canvas(cardRef.current, {
-        scale: window.devicePixelRatio,
-        useCORS: true,
-        backgroundColor: null,
-      });
-
-      draggableElements.forEach((ref) => {
-        if (ref.current) {
-          ref.current.style.border = `4px dashed ${textColor === 'white' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'}`;
+      try {
+        // Chờ tất cả hình ảnh tải xong
+        const imagePromises: Promise<void>[] = [];
+        if (backgroundImage) {
+          imagePromises.push(loadImage(backgroundImage));
         }
-      });
+        if (logoImage) {
+          imagePromises.push(loadImage(logoImage));
+        }
 
-      // Chuyển canvas thành base64
-      const imageData = canvas.toDataURL('image/png');
+        await Promise.all(imagePromises);
 
-      // Lưu imageData vào Neon
-      const newCardId = uuidv4();
-      const saveImageResponse = await fetch('http://localhost:5000/api/save-image', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ id: newCardId, imageData }),
-      });
-      const saveImageResult = await saveImageResponse.json();
-      if (!saveImageResponse.ok) {
-        throw new Error(saveImageResult.error || 'Failed to save image to Neon');
+        // Sau khi hình ảnh đã tải xong, gọi html2canvas
+        const canvas = await html2canvas(cardRef.current, {
+          scale: window.devicePixelRatio,
+          useCORS: true,
+          backgroundColor: null,
+        });
+
+        draggableElements.forEach((ref) => {
+          if (ref.current) {
+            ref.current.style.border = `4px dashed ${textColor === 'white' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'}`;
+          }
+        });
+
+        // Chuyển canvas thành base64
+        const imageData = canvas.toDataURL('image/png');
+
+        // Lưu imageData vào Neon
+        const newCardId = uuidv4();
+        const saveImageResponse = await fetch(`${BACKEND_URL}/api/save-image`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ id: newCardId, imageData }),
+        });
+        const saveImageResult = await saveImageResponse.json();
+        if (!saveImageResponse.ok) {
+          throw new Error(saveImageResult.error || 'Failed to save image to Neon');
+        }
+
+        // Chuẩn bị dữ liệu card để lưu vào localStorage (ngoại trừ imageData)
+        const newCard: CardData = {
+          ...cardData,
+          id: newCardId,
+          backgroundImage: backgroundImage,
+          logoImage: logoImage,
+          imageData: undefined, // Không lưu imageData vào localStorage
+        };
+
+        // Lưu card vào localStorage với key 'savedCards'
+        const storedCards = JSON.parse(localStorage.getItem('savedCards') || '{"cards": []}');
+        storedCards.cards = storedCards.cards || [];
+        storedCards.cards.push(newCard);
+        localStorage.setItem('savedCards', JSON.stringify(storedCards));
+
+        navigate('/profile');
+      } catch (error) {
+        console.error('Error during save:', error);
+        draggableElements.forEach((ref) => {
+          if (ref.current) {
+            ref.current.style.border = `4px dashed ${textColor === 'white' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'}`;
+          }
+        });
+        alert('Failed to save card. Please ensure the images are accessible and try again.');
       }
-
-      // Chuẩn bị dữ liệu card để lưu vào localStorage (ngoại trừ imageData)
-      const newCard: CardData = {
-        ...cardData,
-        id: newCardId,
-        backgroundImage: backgroundImage,
-        logoImage: logoImage,
-        imageData: undefined, // Không lưu imageData vào localStorage
-      };
-
-      // Lưu card vào localStorage với key 'savedCards'
-      const storedCards = JSON.parse(localStorage.getItem('savedCards') || '{"cards": []}');
-      storedCards.cards = storedCards.cards || [];
-      storedCards.cards.push(newCard);
-      localStorage.setItem('savedCards', JSON.stringify(storedCards));
-
-      navigate('/profile');
     }
   };
 
@@ -493,20 +528,12 @@ const Create = () => {
 
   const handleImageUrlSubmit = () => {
     if (logoUrlInput) {
-      setLogoImage(logoUrlInput);
+      setLogoImage(`${BACKEND_URL}/api/proxy-image?url=${encodeURIComponent(logoUrlInput)}`);
     }
     if (backgroundUrlInput) {
-      setBackgroundImage(backgroundUrlInput);
+      setBackgroundImage(`${BACKEND_URL}/api/proxy-image?url=${encodeURIComponent(backgroundUrlInput)}`);
     }
     setShowImageUrlPopup(false);
-    setLogoUrlInput('');
-    setBackgroundUrlInput('');
-  };
-
-  const openImageUrlPopup = () => {
-    setShowImageUrlPopup(true);
-    setLogoUrlInput(logoImage || '');
-    setBackgroundUrlInput(backgroundImage || '');
   };
 
   const dragHandleStyle: React.CSSProperties = {
@@ -693,7 +720,7 @@ const Create = () => {
               style={logoStyle}
               className="outline-none focus:ring-2 focus:ring-blue-500 rounded"
               onTouchEnd={handleTouchEnd}
-              onClick={openImageUrlPopup}
+              onClick={() => setShowImageUrlPopup(true)}
             >
               <div className={`cursor-pointer flex flex-col items-center ${logoImage ? '' : `text-${textColor}`}`}>
                 {logoImage ? (
@@ -721,7 +748,7 @@ const Create = () => {
         <div className={`flex gap-4 ${isMobile ? 'm-auto' : ''}`}>
           <button
             className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
-            onClick={openImageUrlPopup}
+            onClick={() => setShowImageUrlPopup(true)}
           >
             Add Image URLs
           </button>
