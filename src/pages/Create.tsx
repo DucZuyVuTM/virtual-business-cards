@@ -41,6 +41,7 @@ const Create = () => {
   const [showImageUrlPopup, setShowImageUrlPopup] = useState(false);
   const [logoUrlInput, setLogoUrlInput] = useState('');
   const [backgroundUrlInput, setBackgroundUrlInput] = useState('');
+  const [loading, setLoading] = useState<{ logo: boolean; background: boolean }>({ logo: false, background: false });
 
   const cardRef = useRef<HTMLDivElement>(null);
   const group1Ref = useRef<HTMLDivElement>(null);
@@ -162,14 +163,39 @@ const Create = () => {
     setTouchOffset(null);
   };
 
-  // Hàm tải hình ảnh với Promise
-  const loadImage = (url: string): Promise<void> => {
+  // Hàm tải hình ảnh với retry và timeout
+  const loadImage = (url: string, maxRetries = 3, retryDelay = 2000): Promise<void> => {
     return new Promise((resolve, reject) => {
-      const img = new Image();
-      img.src = url;
-      img.crossOrigin = 'Anonymous'; // Đảm bảo CORS cho html2canvas
-      img.onload = () => resolve();
-      img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
+      let retries = 0;
+      const attemptLoad = () => {
+        const img = new Image();
+        img.crossOrigin = 'Anonymous';
+        img.src = url;
+
+        const timeout = setTimeout(() => {
+          if (retries < maxRetries) {
+            retries++;
+            setTimeout(attemptLoad, retryDelay);
+          } else {
+            reject(new Error(`Timeout loading image: ${url}`));
+          }
+        }, 10000); // Timeout 10 giây
+
+        img.onload = () => {
+          clearTimeout(timeout);
+          resolve();
+        };
+        img.onerror = () => {
+          clearTimeout(timeout);
+          if (retries < maxRetries) {
+            retries++;
+            setTimeout(attemptLoad, retryDelay);
+          } else {
+            reject(new Error(`Failed to load image after ${maxRetries} retries: ${url}`));
+          }
+        };
+      };
+      attemptLoad();
     });
   };
 
@@ -247,7 +273,9 @@ const Create = () => {
             ref.current.style.border = `4px dashed ${textColor === 'white' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'}`;
           }
         });
-        alert('Failed to save card. Please ensure the images are accessible and try again.');
+        alert(`Failed to save card. ${error}. Please check image URLs or try again.`);
+      } finally {
+        setLoading({ logo: false, background: false });
       }
     }
   };
@@ -526,14 +554,38 @@ const Create = () => {
     setTextColor((prev) => (prev === 'white' ? 'black' : 'white'));
   };
 
-  const handleImageUrlSubmit = () => {
-    if (logoUrlInput) {
-      setLogoImage(`${BACKEND_URL}/api/proxy-image?url=${encodeURIComponent(logoUrlInput)}`);
-    }
-    if (backgroundUrlInput) {
-      setBackgroundImage(`${BACKEND_URL}/api/proxy-image?url=${encodeURIComponent(backgroundUrlInput)}`);
-    }
+  const handleImageUrlSubmit = async () => {
     setShowImageUrlPopup(false);
+
+    if (logoUrlInput) {
+      setLoading((prev) => ({ ...prev, logo: true }));
+      try {
+        const proxyUrl = `${BACKEND_URL}/api/proxy-image?url=${encodeURIComponent(logoUrlInput)}`;
+        await loadImage(proxyUrl);
+        setLogoImage(proxyUrl);
+      } catch (error) {
+        console.error('Error loading logo:', error);
+        alert(`Failed to load logo image: ${error}. Please check the URL.`);
+        setLogoImage(null);
+      } finally {
+        setLoading((prev) => ({ ...prev, logo: false }));
+      }
+    }
+
+    if (backgroundUrlInput) {
+      setLoading((prev) => ({ ...prev, background: true }));
+      try {
+        const proxyUrl = `${BACKEND_URL}/api/proxy-image?url=${encodeURIComponent(backgroundUrlInput)}`;
+        await loadImage(proxyUrl);
+        setBackgroundImage(proxyUrl);
+      } catch (error) {
+        console.error('Error loading background:', error);
+        alert(`Failed to load background image: ${error}. Please check the URL.`);
+        setBackgroundImage(null);
+      } finally {
+        setLoading((prev) => ({ ...prev, background: false }));
+      }
+    }
   };
 
   const dragHandleStyle: React.CSSProperties = {
@@ -607,6 +659,11 @@ const Create = () => {
               opacity: 0.2,
             }}
           />
+        )}
+        {loading.background && (
+          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50">
+            <span className="text-white">Loading background...</span>
+          </div>
         )}
         <div className="flex w-full h-full p-4">
           <div className={`w-2/3 text-${textColor} p-4`}>
@@ -723,7 +780,9 @@ const Create = () => {
               onClick={() => setShowImageUrlPopup(true)}
             >
               <div className={`cursor-pointer flex flex-col items-center ${logoImage ? '' : `text-${textColor}`}`}>
-                {logoImage ? (
+                {loading.logo ? (
+                  <span className="text-white">Loading logo...</span>
+                ) : logoImage ? (
                   <img
                     src={logoImage}
                     alt="Logo"
