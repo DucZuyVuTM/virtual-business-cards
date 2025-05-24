@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { CardData, CardsState } from '../types/cardData';
 
-const BACKEND_URL = "http://localhost:5000";
+const BACKEND_URL = "https://virtual-business-cards-backend.onrender.com";
 
 const Profile: React.FC = () => {
   const [cards, setCards] = useState<CardData[]>([]);

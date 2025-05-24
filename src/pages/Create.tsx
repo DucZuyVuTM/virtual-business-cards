@@ -6,7 +6,7 @@ import EditableField from '../components/EditableField';
 import { CardData } from '../types/cardData';
 import { v4 as uuidv4 } from 'uuid';
 
-const BACKEND_URL = "http://localhost:5000";
+const BACKEND_URL = "https://virtual-business-cards-backend.onrender.com";
 
 const Create = () => {
   const defaultData: CardData = {
@@ -42,6 +42,7 @@ const Create = () => {
   const [logoUrlInput, setLogoUrlInput] = useState('');
   const [backgroundUrlInput, setBackgroundUrlInput] = useState('');
   const [loading, setLoading] = useState<{ logo: boolean; background: boolean }>({ logo: false, background: false });
+  const [dashEnable, setDashEnable] = useState(true);
 
   const cardRef = useRef<HTMLDivElement>(null);
   const group1Ref = useRef<HTMLDivElement>(null);
@@ -201,10 +202,10 @@ const Create = () => {
 
   const handleSave = async () => {
     if (cardRef.current) {
-      const draggableElements = [group1Ref, group2Ref, group3Ref, logoRef];
-      draggableElements.forEach((ref) => {
+      const groupElements = [group1Ref, group2Ref, group3Ref];
+      groupElements.forEach((ref) => {
         if (ref.current) {
-          ref.current.style.border = 'none';
+          setDashEnable(false);
         }
       });
 
@@ -227,9 +228,9 @@ const Create = () => {
           backgroundColor: null,
         });
 
-        draggableElements.forEach((ref) => {
+        groupElements.forEach((ref) => {
           if (ref.current) {
-            ref.current.style.border = `4px dashed ${textColor === 'white' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'}`;
+            setDashEnable(true);
           }
         });
 
@@ -268,9 +269,9 @@ const Create = () => {
         navigate('/profile');
       } catch (error) {
         console.error('Error during save:', error);
-        draggableElements.forEach((ref) => {
+        groupElements.forEach((ref) => {
           if (ref.current) {
-            ref.current.style.border = `4px dashed ${textColor === 'white' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'}`;
+            setDashEnable(true);
           }
         });
         alert(`Failed to save card. ${error}. Please check image URLs or try again.`);
@@ -591,7 +592,7 @@ const Create = () => {
   const dragHandleStyle: React.CSSProperties = {
     position: 'absolute',
     padding: '4px',
-    border: `4px dashed ${textColor === 'white' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'}`,
+    border: dashEnable ? `4px dashed ${textColor === 'white' ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.3)'}` : 'none',
     cursor: 'move',
     borderRadius: '4px',
     maxWidth: '5000px',
@@ -600,7 +601,7 @@ const Create = () => {
   };
 
   const dragHandleHoverStyle: React.CSSProperties = {
-    border: `4px dashed ${textColor === 'white' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'}`,
+    border: dashEnable ? `4px dashed ${textColor === 'white' ? 'rgba(255, 255, 255, 0.7)' : 'rgba(0, 0, 0, 0.7)'}` : 'none',
     maxWidth: '5000px',
     maxHeight: '5000px',
   };
