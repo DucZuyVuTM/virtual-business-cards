@@ -16,10 +16,17 @@ const Profile: React.FC = () => {
     const savedData: CardsState = JSON.parse(localStorage.getItem('savedCards') || '{"cards": []}');
     setCards(savedData.cards || []);
 
-    // Lấy imageData từ Neon
+    // Lấy imageData từ Neon dựa trên danh sách id từ localStorage
     const fetchImages = async () => {
       try {
-        const response = await fetch(`${BACKEND_URL}/api/get-images`);
+        const cardIds = savedData.cards.map((card) => card.id);
+        const response = await fetch(`${BACKEND_URL}/api/get-images`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ ids: cardIds }),
+        });
         const data = await response.json();
         if (!response.ok) {
           throw new Error(data.error || 'Failed to fetch images');
