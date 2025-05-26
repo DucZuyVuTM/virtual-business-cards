@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { CardData } from '../types/cardData';
+import { CardData } from '../../types/cardData';
 
 interface EditableFieldProps {
   field: keyof CardData;
