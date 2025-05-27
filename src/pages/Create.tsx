@@ -7,10 +7,26 @@ import { useImageHandler } from '../hooks/useImageHandler';
 import { useCardCapture } from '../hooks/useCardCapture';
 import FormattingPopup from '../components/CardEditor/FormattingPopup';
 import EditableField from '../components/CardEditor/EditableField';
-import { useLocation } from 'react-router-dom'; // Để lấy query params
+import { useLocation } from 'react-router-dom';
 
 const Create = () => {
-  const [cardData, setCardData] = useState<CardData>(defaultData);
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialBackground = searchParams.get('background') || undefined;
+  const editCardData = location.state?.cardData as CardData | undefined;
+
+  // Khởi tạo cardData với dữ liệu từ editCardData nếu có
+  const [cardData, setCardData] = useState<CardData>(() => {
+    if (editCardData) {
+      return {
+        ...defaultData,
+        ...editCardData, // Áp dụng toàn bộ dữ liệu từ editCardData
+        positions: editCardData.positions || defaultData.positions, // Đảm bảo positions được áp dụng
+      };
+    }
+    return defaultData;
+  });
+
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
   const [textColor, setTextColor] = useState<'white' | 'black'>('white');
   const [dashEnable, setDashEnable] = useState(true);
@@ -25,12 +41,13 @@ const Create = () => {
     setCardData((prev) => ({ ...prev, [field]: value }));
   };
 
-  const location = useLocation();
-  const searchParams = new URLSearchParams(location.search);
-  const initialBackground = searchParams.get('background') || undefined; // Lấy background từ query params
+  // Truyền backgroundImage và logoImage từ editCardData vào useImageHandler
+  const { backgroundImage, logoImage, showImageUrlPopup, logoUrlInput, backgroundUrlInput, loading, setShowImageUrlPopup, setLogoUrlInput, setBackgroundUrlInput, handleImageUrlSubmit, setLogoImage, setLoading } = useImageHandler(
+    editCardData?.backgroundImage || initialBackground, // Sử dụng backgroundImage từ editCardData nếu có
+    editCardData?.logoImage || undefined // Sử dụng logoImage từ editCardData nếu có
+  );
 
   const { handleDragStart, handleDragOver, handleDrop, handleTouchStart, handleTouchMove, handleTouchEnd } = useDrag(cardRef);
-  const { backgroundImage, logoImage, showImageUrlPopup, logoUrlInput, backgroundUrlInput, loading, setShowImageUrlPopup, setLogoUrlInput, setBackgroundUrlInput, handleImageUrlSubmit, setLogoImage, setLoading } = useImageHandler(initialBackground);
   const { showPopup, popupPosition, handleTextSelect, applyBold, applyItalic, applyUnderline, setFontSize, setFontFamily, removeFormatting } = useTextFormatting(handleInput);
   const { handleSave } = useCardCapture(cardRef, group1Ref, group2Ref, group3Ref, cardData, backgroundImage, logoImage, setDashEnable, setLoading);
 
@@ -76,7 +93,9 @@ const Create = () => {
   };
 
   const initializeCardPositions = () => {
-    resetPositions();
+    if (!editCardData) {
+      resetPositions();
+    }
   };
 
   const handleResetInfo = () => {

@@ -1,9 +1,10 @@
+// useImageHandler.ts
 import { useState, useEffect } from 'react';
 import { BACKEND_URL } from '../const/const';
 
-export const useImageHandler = (initialBackground?: string) => {
-  const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
-  const [logoImage, setLogoImage] = useState<string | null>(null);
+export const useImageHandler = (initialBackground?: string, initialLogo?: string) => {
+  const [backgroundImage, setBackgroundImage] = useState<string | null>(initialBackground || null);
+  const [logoImage, setLogoImage] = useState<string | null>(initialLogo || null);
   const [showImageUrlPopup, setShowImageUrlPopup] = useState(false);
   const [logoUrlInput, setLogoUrlInput] = useState('');
   const [backgroundUrlInput, setBackgroundUrlInput] = useState('');
@@ -56,6 +57,19 @@ export const useImageHandler = (initialBackground?: string) => {
         .finally(() => setLoading((prev) => ({ ...prev, background: false })));
     }
   }, [initialBackground]);
+
+  useEffect(() => {
+    if (initialLogo) {
+      setLoading((prev) => ({ ...prev, logo: true }));
+      loadImage(initialLogo)
+        .then(() => setLogoImage(initialLogo))
+        .catch((error) => {
+          console.error('Error loading initial logo:', error);
+          setLogoImage(null);
+        })
+        .finally(() => setLoading((prev) => ({ ...prev, logo: false })));
+    }
+  }, [initialLogo]);
 
   const handleImageUrlSubmit = async () => {
     setShowImageUrlPopup(false);

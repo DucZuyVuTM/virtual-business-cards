@@ -211,6 +211,13 @@ const Profile: React.FC = () => {
               </div>
             )}
             <div className="flex gap-2 justify-end w-full">
+              <Link
+                to={"/create"}
+                state={{ cardData: selectedCard }}
+                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+              >
+                Edit
+              </Link>
               <button
                 className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
                 onClick={() => handleDeleteCard(selectedCard.id)}
