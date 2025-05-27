@@ -2,8 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import { v4 as uuidv4 } from 'uuid';
 import { CardData } from '../types/cardData';
-
-const BACKEND_URL = "http://localhost:5000";
+import { BACKEND_URL } from '../const/const';
 
 export const useCardCapture = (
   cardRef: React.RefObject<HTMLDivElement>,

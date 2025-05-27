@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { CardData, CardsState } from '../types/cardData';
-
-const BACKEND_URL = "https://virtual-business-cards-backend.onrender.com";
+import { BACKEND_URL } from '../const/const';
 
 const Profile: React.FC = () => {
   const [cards, setCards] = useState<CardData[]>([]);

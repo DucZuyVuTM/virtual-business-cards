@@ -7,6 +7,7 @@ import { useImageHandler } from '../hooks/useImageHandler';
 import { useCardCapture } from '../hooks/useCardCapture';
 import FormattingPopup from '../components/CardEditor/FormattingPopup';
 import EditableField from '../components/CardEditor/EditableField';
+import { useLocation } from 'react-router-dom'; // Để lấy query params
 
 const Create = () => {
   const [cardData, setCardData] = useState<CardData>(defaultData);
@@ -24,8 +25,12 @@ const Create = () => {
     setCardData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const initialBackground = searchParams.get('background') || undefined; // Lấy background từ query params
+
   const { handleDragStart, handleDragOver, handleDrop, handleTouchStart, handleTouchMove, handleTouchEnd } = useDrag(cardRef);
-  const { backgroundImage, logoImage, showImageUrlPopup, logoUrlInput, backgroundUrlInput, loading, setShowImageUrlPopup, setLogoUrlInput, setBackgroundUrlInput, handleImageUrlSubmit, setLogoImage, setLoading } = useImageHandler();
+  const { backgroundImage, logoImage, showImageUrlPopup, logoUrlInput, backgroundUrlInput, loading, setShowImageUrlPopup, setLogoUrlInput, setBackgroundUrlInput, handleImageUrlSubmit, setLogoImage, setLoading } = useImageHandler(initialBackground);
   const { showPopup, popupPosition, handleTextSelect, applyBold, applyItalic, applyUnderline, setFontSize, setFontFamily, removeFormatting } = useTextFormatting(handleInput);
   const { handleSave } = useCardCapture(cardRef, group1Ref, group2Ref, group3Ref, cardData, backgroundImage, logoImage, setDashEnable, setLoading);
 

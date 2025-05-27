@@ -1,8 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { BACKEND_URL } from '../const/const';
 
-const BACKEND_URL = "http://localhost:5000";
-
-export const useImageHandler = () => {
+export const useImageHandler = (initialBackground?: string) => {
   const [backgroundImage, setBackgroundImage] = useState<string | null>(null);
   const [logoImage, setLogoImage] = useState<string | null>(null);
   const [showImageUrlPopup, setShowImageUrlPopup] = useState(false);
@@ -44,6 +43,19 @@ export const useImageHandler = () => {
       attemptLoad();
     });
   };
+
+  useEffect(() => {
+    if (initialBackground) {
+      setLoading((prev) => ({ ...prev, background: true }));
+      loadImage(initialBackground)
+        .then(() => setBackgroundImage(initialBackground))
+        .catch((error) => {
+          console.error('Error loading initial background:', error);
+          setBackgroundImage(null);
+        })
+        .finally(() => setLoading((prev) => ({ ...prev, background: false })));
+    }
+  }, [initialBackground]);
 
   const handleImageUrlSubmit = async () => {
     setShowImageUrlPopup(false);
