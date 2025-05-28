@@ -210,7 +210,7 @@ const Profile: React.FC = () => {
                 {imageLoadError}
               </div>
             )}
-            <div className="flex gap-2 justify-end w-full">
+            <div className="flex flex-wrap gap-2 justify-center w-full">
               <Link
                 to={"/create"}
                 state={{ cardData: selectedCard }}
