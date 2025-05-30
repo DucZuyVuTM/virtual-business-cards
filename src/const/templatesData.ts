@@ -1,4 +1,4 @@
-import { Template } from "../types/templatesData";
+import { Template } from "../types/ITemplates";
 
 export const templates: Template[] = [
     { id: 1, name: 'Modern Blue', category: 'business', backgroundImage: 'https://i.postimg.cc/cHMp9MvC/modern-blue.jpg' },
