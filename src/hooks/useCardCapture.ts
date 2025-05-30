@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import html2canvas from 'html2canvas';
 import { v4 as uuidv4 } from 'uuid';
 import { CardData } from '../types/cardData';
-import { BACKEND_URL } from '../const/const';
+import { BACKEND_URL } from '../const/backend';
 
 export const useCardCapture = (
   cardRef: React.RefObject<HTMLDivElement>,

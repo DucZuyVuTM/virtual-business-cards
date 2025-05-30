@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { CardData, CardsState } from '../types/cardData';
-import { BACKEND_URL } from '../const/const';
+import { BACKEND_URL } from '../const/backend';
 
 const Profile: React.FC = () => {
   const [cards, setCards] = useState<CardData[]>([]);

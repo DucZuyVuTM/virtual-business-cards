@@ -1,6 +1,5 @@
-// useImageHandler.ts
 import { useState, useEffect } from 'react';
-import { BACKEND_URL } from '../const/const';
+import { BACKEND_URL } from '../const/backend';
 
 export const useImageHandler = (initialBackground?: string, initialLogo?: string) => {
   const [backgroundImage, setBackgroundImage] = useState<string | null>(initialBackground || null);

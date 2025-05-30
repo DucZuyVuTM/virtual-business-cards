@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { CardData } from '../types/cardData';
-import { defaultData } from '../types/defaultData';
+import { defaultData } from '../const/defaultData';
 import { useDrag } from '../hooks/useDrag';
 import { useTextFormatting } from '../hooks/useTextFormatting';
 import { useImageHandler } from '../hooks/useImageHandler';

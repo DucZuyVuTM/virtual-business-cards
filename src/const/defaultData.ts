@@ -1,4 +1,4 @@
-import { CardData } from "./cardData";
+import { CardData } from "../types/cardData";
 import { v4 as uuidv4 } from 'uuid';
 
 export const defaultData: CardData = {
