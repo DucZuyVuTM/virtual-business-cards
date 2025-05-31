@@ -196,7 +196,7 @@ const Create = () => {
       <h2 className="text-2xl font-bold mb-6 text-center">Customize your business card</h2>
       <div
         ref={cardRef}
-        className="relative flex justify-center"
+        className="card relative flex justify-center"
         onDragOver={handleDragOver}
         onDrop={(e) => handleDrop(e, updatePosition)}
         onMouseUp={handleTextSelect}
@@ -233,6 +233,7 @@ const Create = () => {
             <div
               ref={group1Ref}
               key="group1"
+              className="group1"
               draggable
               onDragStart={(e) => handleDragStart(e, 'group1')}
               onTouchStart={(e) => handleTouchStart(e, 'group1')}
@@ -249,14 +250,14 @@ const Create = () => {
                 value={cardData.name}
                 onChange={handleInput}
                 style={textElementStyle}
-                className={`font-bold ${cardData.name === '' ? 'empty:before:content-["Enter_name"] empty:before:text-gray-300' : ''}`}
+                className={`name font-bold ${cardData.name === '' ? 'empty:before:content-["Enter_name"] empty:before:text-gray-300' : ''}`}
               />
               <EditableField
                 field="title"
                 value={cardData.title}
                 onChange={handleInput}
                 style={textElementStyle}
-                className={`${cardData.title === '' ? 'empty:before:content-["Enter_title"] empty:before:text-gray-300' : ''}`}
+                className={`title ${cardData.title === '' ? 'empty:before:content-["Enter_title"] empty:before:text-gray-300' : ''}`}
               />
             </div>
 
@@ -264,6 +265,7 @@ const Create = () => {
             <div
               ref={group2Ref}
               key="group2"
+              className="group2"
               draggable
               onDragStart={(e) => handleDragStart(e, 'group2')}
               onTouchStart={(e) => handleTouchStart(e, 'group2')}
@@ -280,21 +282,21 @@ const Create = () => {
                 value={cardData.organization}
                 onChange={handleInput}
                 style={textElementStyle}
-                className={`${cardData.organization === '' ? 'empty:before:content-["Enter_organization"] empty:before:text-gray-300' : ''}`}
+                className={`organization ${cardData.organization === '' ? 'empty:before:content-["Enter_organization"] empty:before:text-gray-300' : ''}`}
               />
               <EditableField
                 field="location"
                 value={cardData.location}
                 onChange={handleInput}
                 style={textElementStyle}
-                className={`${cardData.location === '' ? 'empty:before:content-["Enter_location"] empty:before:text-gray-300' : ''}`}
+                className={`location ${cardData.location === '' ? 'empty:before:content-["Enter_location"] empty:before:text-gray-300' : ''}`}
               />
               <EditableField
                 field="phone"
                 value={cardData.phone}
                 onChange={handleInput}
                 style={textElementStyle}
-                className={`${cardData.phone === '' ? 'empty:before:content-["Enter_phone"] empty:before:text-gray-300' : ''}`}
+                className={`phone ${cardData.phone === '' ? 'empty:before:content-["Enter_phone"] empty:before:text-gray-300' : ''}`}
               />
             </div>
 
@@ -302,6 +304,7 @@ const Create = () => {
             <div
               ref={group3Ref}
               key="group3"
+              className="group3"
               draggable
               onDragStart={(e) => handleDragStart(e, 'group3')}
               onTouchStart={(e) => handleTouchStart(e, 'group3')}
@@ -318,14 +321,14 @@ const Create = () => {
                 value={cardData.email}
                 onChange={handleInput}
                 style={textElementStyle}
-                className={`${cardData.email === '' ? 'empty:before:content-["Enter_email"] empty:before:text-gray-300' : ''}`}
+                className={`email ${cardData.email === '' ? 'empty:before:content-["Enter_email"] empty:before:text-gray-300' : ''}`}
               />
               <EditableField
                 field="website"
                 value={cardData.website}
                 onChange={handleInput}
                 style={textElementStyle}
-                className={`${cardData.website === '' ? 'empty:before:content-["Enter_website"] empty:before:text-gray-300' : ''}`}
+                className={`website ${cardData.website === '' ? 'empty:before:content-["Enter_website"] empty:before:text-gray-300' : ''}`}
               />
             </div>
 
@@ -337,7 +340,7 @@ const Create = () => {
               onDragStart={(e) => handleDragStart(e, 'logo')}
               onTouchStart={(e) => handleTouchStart(e, 'logo')}
               style={logoStyle}
-              className="outline-none focus:ring-2 focus:ring-blue-500 rounded"
+              className="logo outline-none focus:ring-2 focus:ring-blue-500 rounded"
               onTouchEnd={handleTouchEnd}
               onClick={() => setShowImageUrlPopup(true)}
             >
@@ -367,23 +370,23 @@ const Create = () => {
 
       <div className={`flex ${isMobile ? 'flex-col' : 'flex-row'} justify-center gap-4 mt-4`}>
         <div className={`flex gap-4 ${isMobile ? 'm-auto' : ''}`}>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition" onClick={() => setShowImageUrlPopup(true)}>
+          <button className="add-images bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition" onClick={() => setShowImageUrlPopup(true)}>
             Add Image URLs
           </button>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition" onClick={handleSave}>
+          <button className="save bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition" onClick={handleSave}>
             Save
           </button>
         </div>
         <div className={`flex gap-4 ${isMobile ? 'm-auto' : ''}`}>
-          <button className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition" onClick={handleResetInfo}>
+          <button className="reset-info bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition" onClick={handleResetInfo}>
             Reset Info
           </button>
-          <button className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition" onClick={resetPositions}>
+          <button className="reset-pos bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition" onClick={resetPositions}>
             Reset position
           </button>
         </div>
         <div className={`flex gap-4 ${isMobile ? 'm-auto' : ''}`}>
-          <button className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition" onClick={toggleTextColor}>
+          <button className="change-textcolor bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition" onClick={toggleTextColor}>
             Change text color
           </button>
         </div>
@@ -400,7 +403,7 @@ const Create = () => {
                 value={logoUrlInput}
                 onChange={(e) => setLogoUrlInput(e.target.value)}
                 placeholder="https://example.com/logo.png"
-                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="add-logo w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="mb-4">
@@ -410,14 +413,14 @@ const Create = () => {
                 value={backgroundUrlInput}
                 onChange={(e) => setBackgroundUrlInput(e.target.value)}
                 placeholder="https://example.com/background.jpg"
-                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="add-bg w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
             <div className="flex gap-2 justify-end">
-              <button className="bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition" onClick={() => setShowImageUrlPopup(false)}>
+              <button className="cancel bg-gray-300 text-gray-800 px-4 py-2 rounded hover:bg-gray-400 transition" onClick={() => setShowImageUrlPopup(false)}>
                 Cancel
               </button>
-              <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition" onClick={handleImageUrlSubmit}>
+              <button className="submit bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition" onClick={handleImageUrlSubmit}>
                 Submit
               </button>
             </div>

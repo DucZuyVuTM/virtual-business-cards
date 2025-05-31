@@ -227,6 +227,7 @@ export const useTextFormatting = (handleInput: (field: keyof CardData, value: st
     applyBold,
     applyItalic,
     applyUnderline,
+    applyFormatting,
     removeFormatting,
     setFontSize: (size: string) => applyFormatting({ fontSize: `${size}px` }),
     setFontFamily: (font: string) => applyFormatting({ fontFamily: font }),

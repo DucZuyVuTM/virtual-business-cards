@@ -11,11 +11,9 @@ const Profile: React.FC = () => {
   const [imageLoadError, setImageLoadError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Lấy dữ liệu từ localStorage với key 'savedCards'
     const savedData: CardsState = JSON.parse(localStorage.getItem('savedCards') || '{"cards": []}');
     setCards(savedData.cards || []);
 
-    // Lấy imageData từ Neon dựa trên danh sách id từ localStorage
     const fetchImages = async () => {
       try {
         const cardIds = savedData.cards.map((card) => card.id);
@@ -57,7 +55,6 @@ const Profile: React.FC = () => {
 
   const handleDeleteCard = async (id: string) => {
     try {
-      // Xóa từ Neon
       const deleteResponse = await fetch(`${BACKEND_URL}/api/delete-card/${id}`, {
         method: 'DELETE',
       });
@@ -66,7 +63,6 @@ const Profile: React.FC = () => {
         throw new Error(deleteResult.error || 'Failed to delete card from Neon');
       }
 
-      // Xóa từ localStorage
       const updatedCards = cards.filter((card) => card.id !== id);
       localStorage.setItem('savedCards', JSON.stringify({ cards: updatedCards }));
       setCards(updatedCards);
@@ -112,14 +108,14 @@ const Profile: React.FC = () => {
 
   return (
     <main className="profile container mx-auto p-4 flex-grow">
-      <h2 className="text-2xl font-bold mb-6 text-center">
+      <h2 className="profile-header text-2xl font-bold mb-6 text-center">
         Your Profile -- {cards.length} card{cards.length !== 1 ? 's' : ''}
       </h2>
       {cards.length === 0 ? (
-        <p className="text-center text-gray-500">No saved cards.</p>
+        <p className="empty-state text-center text-gray-500">No saved cards.</p>
       ) : (
         <div
-          className="grid gap-4"
+          className="card-grid grid gap-4"
           style={{
             gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)',
           }}
@@ -129,27 +125,28 @@ const Profile: React.FC = () => {
             return (
               <div
                 key={card.id}
-                className="flex items-center p-2 border rounded-lg shadow-md hover:bg-gray-100 cursor-pointer transition"
+                className="card-item flex items-center p-2 border rounded-lg shadow-md hover:bg-gray-100 cursor-pointer transition"
                 onClick={() => setSelectedCard({ ...card, imageData })}
               >
-                <div style={previewStyle}>
+                <div className="card-preview" style={previewStyle}>
                   {imageData ? (
                     <img
                       src={imageData}
                       alt={`${card.name || 'Card'} preview`}
+                      className="preview-image"
                       style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       onError={() => handleImageError(card.id)}
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-white text-xs">
+                    <div className="no-preview w-full h-full flex items-center justify-center text-white text-xs">
                       No preview
                     </div>
                   )}
                 </div>
-                <div className="flex-1 ml-2">
-                  <p className="font-semibold">{card.name || 'No name'}</p>
-                  <p className="text-sm text-gray-600">{card.title || 'No title'}</p>
-                  <p className="text-sm text-gray-600">{card.organization || 'No organization'}</p>
+                <div className="card-details flex-1 ml-2">
+                  <p className="card-name font-semibold">{card.name || 'No name'}</p>
+                  <p className="card-title text-sm text-gray-600">{card.title || 'No title'}</p>
+                  <p className="card-organization text-sm text-gray-600">{card.organization || 'No organization'}</p>
                 </div>
               </div>
             );
@@ -157,14 +154,14 @@ const Profile: React.FC = () => {
         </div>
       )}
       {imageLoadError && (
-        <div className="mt-4 p-2 bg-red-100 text-red-700 rounded">
+        <div className="error-message mt-4 p-2 bg-red-100 text-red-700 rounded">
           {imageLoadError}
         </div>
       )}
-      <div className={`mt-6 flex ${isMobile ? 'flex-col' : 'flex-row'} justify-center gap-4`}>
+      <div className={`action-buttons flex ${isMobile ? 'flex-col' : 'flex-row'} justify-center gap-4 mt-6`}>
         <Link
           to="/create"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-center w-full sm:w-auto"
+          className="create-new-button bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition text-center w-full sm:w-auto"
         >
           Create New Card
         </Link>
@@ -172,11 +169,11 @@ const Profile: React.FC = () => {
 
       {selectedCard && selectedCard.imageData && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+          className="popup-overlay fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           onClick={closePopup}
         >
           <div
-            className="relative bg-white rounded-lg p-4 flex flex-col items-center"
+            className="popup-container relative bg-white rounded-lg p-4 flex flex-col items-center"
             style={{
               width: '100%',
               maxWidth: isMobile ? '90%' : '700px',
@@ -186,7 +183,7 @@ const Profile: React.FC = () => {
             onClick={(e) => e.stopPropagation()}
           >
             <div
-              className="relative w-full mb-4"
+              className="popup-image-container relative w-full mb-4"
               style={{
                 aspectRatio: '7 / 4',
                 maxHeight: '80vh',
@@ -195,6 +192,7 @@ const Profile: React.FC = () => {
               <img
                 src={selectedCard.imageData}
                 alt={`${selectedCard.name || 'Card'} full view`}
+                className="popup-image"
                 style={{
                   width: '100%',
                   height: '100%',
@@ -206,32 +204,32 @@ const Profile: React.FC = () => {
               />
             </div>
             {imageLoadError && (
-              <div className="mb-4 p-2 bg-red-100 text-red-700 rounded">
+              <div className="popup-error mb-4 p-2 bg-red-100 text-red-700 rounded">
                 {imageLoadError}
               </div>
             )}
-            <div className="flex flex-wrap gap-2 justify-center w-full">
+            <div className="popup-actions flex flex-wrap gap-2 justify-center w-full">
               <Link
-                to={"/create"}
+                to="/create"
                 state={{ cardData: selectedCard }}
-                className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+                className="edit-button bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
               >
                 Edit
               </Link>
               <button
-                className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+                className="delete-button bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
                 onClick={() => handleDeleteCard(selectedCard.id)}
               >
                 Delete
               </button>
               <button
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+                className="download-button bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
                 onClick={() => downloadImage(selectedCard.imageData!, selectedCard.name || 'business_card')}
               >
                 Download
               </button>
               <button
-                className="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 transition"
+                className="close-button bg-gray-300 text-gray-800 px-4 py-2 rounded-lg hover:bg-gray-400 transition"
                 onClick={closePopup}
               >
                 Close
