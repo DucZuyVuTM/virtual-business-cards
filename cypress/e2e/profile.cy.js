@@ -119,11 +119,11 @@ describe('Profile Page', () => {
 
   it('should display single-column grid on mobile', () => {
     cy.viewport('iphone-6');
-    cy.get('.card-grid').should('have.css', 'grid-template-columns', '1fr');
+    cy.get('.card-grid').should('have.css', 'grid-template-columns', '343.333px');
   });
 
   it('should display two-column grid on desktop', () => {
     cy.viewport('macbook-15');
-    cy.get('.card-grid').should('have.css', 'grid-template-columns', 'repeat(2, 1fr)');
+    cy.get('.card-grid').should('have.css', 'grid-template-columns', '616px 616px');
   });
 });
